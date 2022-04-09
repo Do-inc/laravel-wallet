@@ -1,8 +1,6 @@
 <?php
 
-namespace VendorName\Skeleton\Database\Factories;
-
-use Illuminate\Database\Eloquent\Factories\Factory;
+namespace Doinc\LaravelWallet\Database\Factories;
 
 /*
 class ModelFactory extends Factory
