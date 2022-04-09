@@ -1,7 +1,7 @@
 <?php
 
-namespace Doinc\LaravelWallet;
+namespace Doinc\Wallet;
 
-class LaravelWallet
+class Wallet
 {
 }

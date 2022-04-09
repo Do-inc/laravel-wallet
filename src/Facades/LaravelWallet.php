@@ -1,16 +1,16 @@
 <?php
 
-namespace Doinc\LaravelWallet\Facades;
+namespace Doinc\Wallet\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \Doinc\LaravelWallet\LaravelWallet
+ * @see \Doinc\Wallet\LaravelWallet
  */
 class LaravelWallet extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return 'laravel-wallet';
+        return 'doinc-wallet';
     }
 }

@@ -1,8 +1,7 @@
 <?php
 
-namespace Doinc\LaravelWallet;
+namespace Doinc\Wallet;
 
-use Doinc\LaravelWallet\Commands\LaravelWalletCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -16,10 +15,12 @@ class LaravelWalletServiceProvider extends PackageServiceProvider
          * More info: https://github.com/spatie/laravel-package-tools
          */
         $package
-            ->name('laravel-wallet')
+            ->name('doinc-wallet')
             ->hasConfigFile()
-            ->hasViews()
-            ->hasMigration('create_laravel-wallet_table')
-            ->hasCommand(LaravelWalletCommand::class);
+            ->hasMigrations([
+                "create_wallets_table",
+                "create_transactions_table",
+                "create_transfers_table",
+            ]);
     }
 }

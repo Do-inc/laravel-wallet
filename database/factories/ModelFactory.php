@@ -1,6 +1,6 @@
 <?php
 
-namespace Doinc\LaravelWallet\Database\Factories;
+namespace Doinc\Wallet\Database\Factories;
 
 /*
 class ModelFactory extends Factory

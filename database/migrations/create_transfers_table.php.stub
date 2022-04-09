@@ -1,0 +1,42 @@
+<?php
+
+use Doinc\LaravelWallet\Enums\TransferStatus;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up()
+    {
+        Schema::create('transfers', function (Blueprint $table) {
+            $table->id();
+
+            if(config("wallet.uuid")) {
+                $table->uuidMorphs("from");
+                $table->uuidMorphs("to");
+            }
+            else {
+                $table->morphs("from");
+                $table->morphs("to");
+            }
+
+            $table->foreignId("deposit_id")
+                ->references("id")
+                ->on("transactions")
+                ->cascadeOnDelete();
+            $table->foreignId("withdraw_id")
+                ->references("id")
+                ->on("transactions")
+                ->cascadeOnDelete();
+
+            $statuses = array_map(fn(TransferStatus $status) => $status->value, TransferStatus::cases());
+            $table->enum('status', $statuses)->default(TransferStatus::TRANSFER->value);
+            $table->enum('status_last', $statuses)->default(TransferStatus::TRANSFER->value);
+            $table->string("discount")->default("0");
+            $table->string("fee")->default("0");
+
+            $table->timestamps();
+        });
+    }
+};

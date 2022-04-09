@@ -34,13 +34,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Doinc\\LaravelWallet\\": "src",
-            "Doinc\\LaravelWallet\\Database\\Factories\\": "database/factories"
+            "Doinc\\Wallet\\": "src",
+            "Doinc\\Wallet\\Database\\Factories\\": "database/factories"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Doinc\\LaravelWallet\\Tests\\": "tests"
+            "Doinc\\Wallet\\Tests\\": "tests"
         }
     },
     "scripts": {
@@ -58,10 +58,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Doinc\\LaravelWallet\\LaravelWalletServiceProvider"
+                "Doinc\\Wallet\\LaravelWalletServiceProvider"
             ],
             "aliases": {
-                "LaravelWallet": "Doinc\\LaravelWallet\\Facades\\LaravelWallet"
+                "LaravelWallet": "Doinc\\Wallet\\Facades\\LaravelWallet"
             }
         }
     },
