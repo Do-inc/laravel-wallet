@@ -2,6 +2,7 @@
 
 namespace Bavix\Wallet\Traits;
 
+use function app;
 use Bavix\Wallet\Exceptions\BalanceIsEmpty;
 use Bavix\Wallet\Exceptions\InsufficientFunds;
 use Bavix\Wallet\Interfaces\Product;
@@ -21,7 +22,6 @@ use Bavix\Wallet\Services\ConsistencyServiceInterface;
 use Bavix\Wallet\Services\DiscountServiceInterface;
 use Bavix\Wallet\Services\TaxServiceInterface;
 use Illuminate\Database\RecordsNotFoundException;
-use function app;
 
 /**
  * Trait HasGift.

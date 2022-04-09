@@ -16,7 +16,9 @@ use Illuminate\Queue\SerializesModels;
 
 class TransactionConfirmed
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
     /**
     * Create a new event instance.
@@ -26,6 +28,6 @@ class TransactionConfirmed
     public function __construct(
         public Wallet $wallet,
         public Transaction $transaction
-    )
-    {}
+    ) {
+    }
 }

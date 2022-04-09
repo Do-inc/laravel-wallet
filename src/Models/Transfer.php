@@ -2,10 +2,10 @@
 
 namespace Doinc\Wallet\Models;
 
+use function config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use function config;
 
 /**
  * Class Transfer.
@@ -57,7 +57,7 @@ class Transfer extends Model
 
     public function getTable(): string
     {
-        if (!$this->table) {
+        if (! $this->table) {
             $this->table = config('wallet.transfer.table', 'transfers');
         }
 

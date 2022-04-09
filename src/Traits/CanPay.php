@@ -19,9 +19,10 @@ trait CanPay
      */
     public function payFree(Product $product): Transfer
     {
-        if(!$product->canBuy($this)) {
+        if (! $product->canBuy($this)) {
             throw new CannotBuyProduct();
         }
+
         return current($this->payFreeCart(app(Cart::class)->withItem($product)));
     }
 
@@ -87,7 +88,8 @@ trait CanPay
      * @param Product $product Product to look for
      * @return Transfer|null
      */
-    public function getPayment(Product $product): ?Transfer {
+    public function getPayment(Product $product): ?Transfer
+    {
         return $this->transfers()
             ->where("to_type", $product->getMorphClass())
             ->where("to_id", $product->getKey())
@@ -104,6 +106,6 @@ trait CanPay
      */
     public function paid(Product $product): bool
     {
-        return !is_null($this->getPayment($product));
+        return ! is_null($this->getPayment($product));
     }
 }

@@ -6,7 +6,6 @@ use Doinc\Wallet\Interfaces\Confirmable;
 use Doinc\Wallet\Interfaces\Customer;
 use Doinc\Wallet\Interfaces\Wallet as WalletInterface;
 use Doinc\Wallet\Traits\CanConfirm;
-use Doinc\Wallet\Traits\CanExchange;
 use Doinc\Wallet\Traits\CanPay;
 use Doinc\Wallet\Traits\HasGift;
 use Illuminate\Database\Eloquent\Model;
@@ -62,7 +61,7 @@ class Wallet extends Model implements Customer, WalletInterface, Confirmable
 
     public function getTable(): string
     {
-        if (!$this->table) {
+        if (! $this->table) {
             $this->table = config('wallet.wallet.table', 'wallets');
         }
 
@@ -76,7 +75,7 @@ class Wallet extends Model implements Customer, WalletInterface, Confirmable
         /**
          * Must be updated only if the model does not exist or the slug is empty.
          */
-        if (!$this->exists && !array_key_exists('slug', $this->attributes)) {
+        if (! $this->exists && ! array_key_exists('slug', $this->attributes)) {
             $this->attributes['slug'] = Str::slug($name);
         }
     }
