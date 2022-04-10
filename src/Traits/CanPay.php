@@ -4,8 +4,11 @@ namespace Doinc\Wallet\Traits;
 
 use Doinc\Wallet\Enums\TransferStatus;
 use Doinc\Wallet\Exceptions\CannotBuyProduct;
+use Doinc\Wallet\Interfaces\Discount;
 use Doinc\Wallet\Interfaces\Product;
+use Doinc\Wallet\Interfaces\Taxable;
 use Doinc\Wallet\Models\Transfer;
+use Doinc\Wallet\TransactionBuilder;
 
 trait CanPay
 {
@@ -22,6 +25,43 @@ trait CanPay
         if (! $product->canBuy($this)) {
             throw new CannotBuyProduct();
         }
+
+        $transfer = new Transfer();
+        $transfer->from_type = $this->getMorphClass();
+        $transfer->from_id = $this->getKey();
+        $transfer->to_type = $product->getMorphClass();
+        $transfer->to_id = $product->getKey();
+        $transfer->status = TransferStatus::PAID;
+        $transfer->status_last = TransferStatus::PAID;
+
+        if($product instanceof Taxable) {
+            $transfer->fee = $product->getFeePercent();
+        }
+        if($product instanceof Discount) {
+            $transfer->discount = $product->getDiscount($this);
+        }
+
+        $deposit_transaction = TransactionBuilder::init()
+            ->withWallet($product)
+            ->isDeposit()
+            ->withMetadata([
+                ...$product->metadata,
+                "free" => true,
+            ])
+            ->get();
+        $withdraw_transaction = TransactionBuilder::init()
+            ->withWallet($this)
+            ->isWithdraw()
+            ->withMetadata([
+                ...$product->metadata,
+                "free" => true
+            ])
+            ->get();
+        $deposit_transaction->save();
+        $withdraw_transaction->save();
+
+        $transfer->deposit_id = $deposit_transaction->getKey();
+        $transfer->withdraw_id = $withdraw_transaction->getKey();
 
         return current($this->payFreeCart(app(Cart::class)->withItem($product)));
     }

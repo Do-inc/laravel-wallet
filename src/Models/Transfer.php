@@ -2,7 +2,7 @@
 
 namespace Doinc\Wallet\Models;
 
-use function config;
+use Doinc\Wallet\Enums\TransferStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -10,27 +10,21 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 /**
  * Class Transfer.
  *
- * @property string      $status
- * @property string      $discount
- * @property int         $deposit_id
- * @property int         $withdraw_id
- * @property string      $from_type
- * @property int         $from_id
- * @property string      $to_type
- * @property int         $to_id
- * @property string      $uuid
- * @property string      $fee
+ * @property TransferStatus $status
+ * @property TransferStatus $status_last
+ * @property string $discount
+ * @property int $deposit_id
+ * @property int $withdraw_id
+ * @property string $from_type
+ * @property int|string $from_id
+ * @property string $to_type
+ * @property int|string $to_id
+ * @property string $fee
  * @property Transaction $deposit
  * @property Transaction $withdraw
  */
 class Transfer extends Model
 {
-    public const STATUS_EXCHANGE = 'exchange';
-    public const STATUS_TRANSFER = 'transfer';
-    public const STATUS_PAID = 'paid';
-    public const STATUS_REFUND = 'refund';
-    public const STATUS_GIFT = 'gift';
-
     /**
      * @var string[]
      */
@@ -43,7 +37,6 @@ class Transfer extends Model
         'from_id',
         'to_type',
         'to_id',
-        'uuid',
         'fee',
     ];
 
@@ -51,18 +44,9 @@ class Transfer extends Model
      * @var array
      */
     protected $casts = [
-        'deposit_id' => 'int',
-        'withdraw_id' => 'int',
+        'status' => TransferStatus::class,
+        'status_last' => TransferStatus::class,
     ];
-
-    public function getTable(): string
-    {
-        if (! $this->table) {
-            $this->table = config('wallet.transfer.table', 'transfers');
-        }
-
-        return parent::getTable();
-    }
 
     public function from(): MorphTo
     {

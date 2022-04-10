@@ -10,5 +10,5 @@ interface Discount
      * @param Customer $customer Product buyer, useful to personalize the discount per user
      * @return int|float|string
      */
-    public function getPersonalDiscount(Customer $customer): int|float|string;
+    public function getDiscount(Customer $customer): int|float|string;
 }

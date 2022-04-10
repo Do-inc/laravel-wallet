@@ -67,5 +67,9 @@ return [
             "message" => "Cannot buy the provided product",
             "code" => 1003,
         ],
+        "UNABLE_TO_CREATE_TRANSACTION" => [
+            "message" => "Something went wrong during the creation of transaction",
+            "code" => 1004,
+        ],
     ],
 ];
