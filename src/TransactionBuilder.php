@@ -34,7 +34,7 @@ class TransactionBuilder
      */
     public static function init(): static
     {
-        return new static;
+        return new static();
     }
 
     /**
@@ -133,7 +133,8 @@ class TransactionBuilder
      *
      * @return Transaction
      */
-    public function get(): Transaction {
+    public function get(): Transaction
+    {
         return new Transaction($this->attributes);
     }
 }

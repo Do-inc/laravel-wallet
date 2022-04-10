@@ -34,10 +34,10 @@ trait CanPay
         $transfer->status = TransferStatus::PAID;
         $transfer->status_last = TransferStatus::PAID;
 
-        if($product instanceof Taxable) {
+        if ($product instanceof Taxable) {
             $transfer->fee = $product->getFeePercent();
         }
-        if($product instanceof Discount) {
+        if ($product instanceof Discount) {
             $transfer->discount = $product->getDiscount($this);
         }
 
@@ -54,7 +54,7 @@ trait CanPay
             ->isWithdraw()
             ->withMetadata([
                 ...$product->metadata,
-                "free" => true
+                "free" => true,
             ])
             ->get();
         $deposit_transaction->save();

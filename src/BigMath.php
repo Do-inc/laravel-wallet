@@ -170,7 +170,8 @@ class BigMath
      * @param int|float|string $second
      * @return bool
      */
-    public static function lowerThan(int|float|string $first, int|float|string $second): bool {
+    public static function lowerThan(int|float|string $first, int|float|string $second): bool
+    {
         return self::compare($first, $second) === BigNumberComparisonStatus::LOWER_THAN;
     }
 
@@ -181,7 +182,8 @@ class BigMath
      * @param int|float|string $second
      * @return bool
      */
-    public static function equal(int|float|string $first, int|float|string $second): bool {
+    public static function equal(int|float|string $first, int|float|string $second): bool
+    {
         return self::compare($first, $second) === BigNumberComparisonStatus::EQUAL;
     }
 
@@ -192,7 +194,8 @@ class BigMath
      * @param int|float|string $second
      * @return bool
      */
-    public static function higherThan(int|float|string $first, int|float|string $second): bool {
+    public static function higherThan(int|float|string $first, int|float|string $second): bool
+    {
         return self::compare($first, $second) === BigNumberComparisonStatus::HIGHER_THAN;
     }
 }
