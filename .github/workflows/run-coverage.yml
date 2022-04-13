@@ -20,7 +20,7 @@ jobs:
           - laravel: 9.*
             testbench: 7.*
 
-    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
+    name: Coverage P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
 
     steps:
       - name: Checkout code
@@ -49,7 +49,10 @@ jobs:
           rm -f ./database/database.sqlite
           touch ./database/database.sqlite
           COVERAGE=$(./vendor/bin/pest --coverage --colors=never | grep 'Cov:' | tr -d '[:blank:]' | tr -d 'Cov:' | tr -d '%')
+          echo "test"
+          echo $COVERAGE
           echo "COVERAGE=${COVERAGE}" >> $GITHUB_ENV
+          echo ${{ env.COVERAGE }}
 
           if [[ $(echo "${COVERAGE} < 40" | bc) -eq 1 ]]; then
             echo "BADGE_COLOR=red" >> $GITHUB_ENV
@@ -58,6 +61,7 @@ jobs:
           else
             echo "BADGE_COLOR=green" >> $GITHUB_ENV
           fi
+          echo ${{ env.BADGE_COLOR }}
       - name: Create coverage badge
         uses: schneegans/dynamic-badges-action@v1.2.0
         with:
