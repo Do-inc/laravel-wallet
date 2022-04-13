@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  coverage:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
@@ -19,8 +19,6 @@ jobs:
         include:
           - laravel: 9.*
             testbench: 7.*
-
-    name: Coverage P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
 
     steps:
       - name: Checkout code
@@ -52,9 +50,9 @@ jobs:
           echo $(which tr)
           COVERAGE=$(vendor/bin/pest --coverage --colors=never | grep 'Cov:' | tr -d '[:blank:]' | tr -d 'Cov:' | tr -d '%')
           echo "test"
-          echo $COVERAGE
+          echo "$COVERAGE"
           echo "COVERAGE=${COVERAGE}" >> $GITHUB_ENV
-          echo ${{ env.COVERAGE }}
+          echo "${{ env.COVERAGE }}"
 
           if [[ $(echo "${COVERAGE} < 40" | bc) -eq 1 ]]; then
             echo "BADGE_COLOR=red" >> $GITHUB_ENV
