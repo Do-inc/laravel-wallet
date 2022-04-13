@@ -45,10 +45,10 @@ jobs:
 
       - name: Run coverage
         run: |
+          echo "::echo::on"
           rm -f ./database/database.sqlite
           touch ./database/database.sqlite
           COVERAGE=$(./vendor/bin/pest --coverage --colors=never | grep 'Cov:' | tr -d '[:blank:]' | tr -d 'Cov:' | tr -d '%')
-          echo $COVERAGE
           echo "COVERAGE=${COVERAGE}" >> $GITHUB_ENV
 
           if [[ $(echo "${COVERAGE} < 40" | bc) -eq 1 ]]; then
