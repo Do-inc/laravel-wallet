@@ -48,15 +48,16 @@ jobs:
           touch ./database/database.sqlite
           echo $(which grep)
           echo $(which tr)
+          vendor/bin/pest --coverage --colors=never
           COVERAGE=$(vendor/bin/pest --coverage --colors=never | grep 'Cov:' | tr -d '[:blank:]' | tr -d 'Cov:' | tr -d '%')
           echo "test"
           echo "$COVERAGE"
           echo "COVERAGE=${COVERAGE}" >> $GITHUB_ENV
           echo "${{ env.COVERAGE }}"
 
-          if [[ $(echo "${COVERAGE} < 40" | bc) -eq 1 ]]; then
+          if [[ $(echo "$COVERAGE < 40" | bc) -eq 1 ]]; then
             echo "BADGE_COLOR=red" >> $GITHUB_ENV
-          elif [[ $(echo "${COVERAGE} < 80" | bc) -eq 1 ]]; then
+          elif [[ $(echo "$COVERAGE < 80" | bc) -eq 1 ]]; then
             echo "BADGE_COLOR=yellow" >> $GITHUB_ENV
           else
             echo "BADGE_COLOR=green" >> $GITHUB_ENV
@@ -67,7 +68,7 @@ jobs:
         with:
           auth: ${{ secrets.GIST_TOKEN }}
           gistID: 45584b0dc38ce224d546245721105bdf
-          filename: laravel-wallet-package.json
+          filename: laravel-wallet-package-${{ github.ref }}.json
           label: Coverage
-          message: "${{ env.COVERAGE }}%"
+          message: ${{ env.COVERAGE }}%
           color: ${{ env.BADGE_COLOR }}
