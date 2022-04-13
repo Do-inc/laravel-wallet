@@ -133,7 +133,7 @@ trait CanPay
      */
     public function refund(Product $product, bool $confirmed = true): Transaction
     {
-        if(!$this->paid($product)) {
+        if (! $this->paid($product)) {
             throw new CannotRefundUnpaidProduct();
         }
 
@@ -147,7 +147,7 @@ trait CanPay
         $transaction->saveOrFail();
 
         $this->getPayment($product)->update([
-            "refunded" => true
+            "refunded" => true,
         ]);
 
         TransactionObserver::applyTransactionOnTheFly($transaction, receiver: $this);
@@ -190,7 +190,8 @@ trait CanPay
      * @param Product $product Product to look for
      * @return Collection<Transaction>
      */
-    public function getAllPayments(Product $product): Collection {
+    public function getAllPayments(Product $product): Collection
+    {
         return $this->transactions()
             ->where("to_type", $product->getMorphClass())
             ->where("to_id", $product->getKey())

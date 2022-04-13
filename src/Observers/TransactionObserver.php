@@ -71,11 +71,12 @@ class TransactionObserver
 
                     break;
                 case TransactionType::REFUND:
-                    if(!$transaction->refunded) {
+                    if (! $transaction->refunded) {
                         // the amount to refund is always only the paid amount without the fee
                         $due = BigMath::sub($transaction->amount, $transaction->discount);
                         $receiver->balance = BigMath::add($receiver->balance, $due);
                     }
+
                     break;
                 case TransactionType::WITHDRAW:
                 case TransactionType::PAYMENT:
