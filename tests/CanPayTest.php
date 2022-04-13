@@ -16,7 +16,7 @@ it('can get a product for free', function () {
     expect($transaction->from_type)->toBeNull();
     expect($transaction->type)->toBe(TransactionType::DEPOSIT);
     expect($transaction->metadata->toArray())->toBe([
-        "test" => true
+        "test" => true,
     ]);
     expect($transaction->amount)->toBe("10.00");
     expect($transaction->discount)->toBe("0.00");

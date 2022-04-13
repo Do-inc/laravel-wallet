@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class SampleDiscountableProduct extends Model implements Product, Discountable
 {
-    use HasWallet, HasDiscount;
+    use HasWallet;
+    use HasDiscount;
 
     /**
      * Check whether the provided customer has enough funds to buy the given quantity of the current product

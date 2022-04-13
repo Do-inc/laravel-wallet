@@ -27,7 +27,9 @@ use Illuminate\Support\Collection;
  */
 class Wallet extends Model implements Customer, Confirmable
 {
-    use CanConfirm, CanPay, HasFactory;
+    use CanConfirm;
+    use CanPay;
+    use HasFactory;
 
     /**
      * @var string[]
@@ -54,7 +56,8 @@ class Wallet extends Model implements Customer, Confirmable
         return $this->morphTo();
     }
 
-    public function balance(): Attribute {
-        return Attribute::make(set: fn($value) => BigMath::add($value, 0));
+    public function balance(): Attribute
+    {
+        return Attribute::make(set: fn ($value) => BigMath::add($value, 0));
     }
 }
