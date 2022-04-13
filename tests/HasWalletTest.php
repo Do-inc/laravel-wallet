@@ -18,7 +18,7 @@ it('can deposit', function () {
     expect($transaction->from_type)->toBeNull();
     expect($transaction->type)->toBe(TransactionType::DEPOSIT);
     expect($transaction->metadata->toArray())->toBe([
-        "test" => true
+        "test" => true,
     ]);
     expect($transaction->amount)->toBe("10.00");
     expect($transaction->discount)->toBe("0.00");
@@ -38,7 +38,7 @@ it('can withdraw', function () {
     expect($transaction->to_type)->toBeNull();
     expect($transaction->type)->toBe(TransactionType::WITHDRAW);
     expect($transaction->metadata->toArray())->toBe([
-        "test" => true
+        "test" => true,
     ]);
     expect($transaction->amount)->toBe("5.00");
     expect($transaction->discount)->toBe("0.00");
@@ -58,7 +58,7 @@ it('cannot withdraw if not confirmed', function () {
     expect($transaction->to_type)->toBeNull();
     expect($transaction->type)->toBe(TransactionType::WITHDRAW);
     expect($transaction->metadata->toArray())->toBe([
-        "test" => true
+        "test" => true,
     ]);
     expect($transaction->amount)->toBe("5.00");
     expect($transaction->discount)->toBe("0.00");
@@ -79,7 +79,7 @@ it('can force withdraw', function () {
     expect($transaction->to_type)->toBeNull();
     expect($transaction->type)->toBe(TransactionType::WITHDRAW);
     expect($transaction->metadata->toArray())->toBe([
-        "test" => true
+        "test" => true,
     ]);
     expect($transaction->amount)->toBe("10.00");
     expect($transaction->discount)->toBe("0.00");
@@ -107,7 +107,7 @@ it('can transfer', function () {
     expect($transaction->to_type)->toBe($receiver::class);
     expect($transaction->type)->toBe(TransactionType::TRANSFER);
     expect($transaction->metadata->toArray())->toBe([
-        "transfer" => true
+        "transfer" => true,
     ]);
     expect($transaction->amount)->toBe("5.00");
     expect($transaction->discount)->toBe("0.00");
@@ -147,7 +147,7 @@ it('can run safe transfer', function () {
     expect($transaction->to_type)->toBe($receiver::class);
     expect($transaction->type)->toBe(TransactionType::TRANSFER);
     expect($transaction->metadata->toArray())->toBe([
-        "transfer" => true
+        "transfer" => true,
     ]);
     expect($transaction->amount)->toBe("5.00");
     expect($transaction->discount)->toBe("0.00");
@@ -181,7 +181,7 @@ it('can run forced transfer', function () {
     expect($transaction->to_type)->toBe($receiver::class);
     expect($transaction->type)->toBe(TransactionType::TRANSFER);
     expect($transaction->metadata->toArray())->toBe([
-        "transfer" => true
+        "transfer" => true,
     ]);
     expect($transaction->amount)->toBe("5.00");
     expect($transaction->discount)->toBe("0.00");

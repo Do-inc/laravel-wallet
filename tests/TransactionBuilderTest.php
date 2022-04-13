@@ -20,7 +20,7 @@ it('can create full transaction', function () {
         ->to($to)
         ->withType(TransactionType::TRANSFER)
         ->withMetadata([
-            "test" => true
+            "test" => true,
         ])
         ->withAmount("123")
         ->withDiscount("1.2")
@@ -35,7 +35,7 @@ it('can create full transaction', function () {
     expect($transaction->to_type)->toBe($to::class);
     expect($transaction->type)->toBe(TransactionType::TRANSFER);
     expect($transaction->metadata->toArray())->toBe([
-        "test" => true
+        "test" => true,
     ]);
     expect($transaction->amount)->toBe("123.00");
     expect($transaction->discount)->toBe("1.20");
@@ -52,7 +52,7 @@ it('can create transaction without receiver (withdraw)', function () {
         ->from($from)
         ->withType(TransactionType::WITHDRAW)
         ->withMetadata([
-            "test" => true
+            "test" => true,
         ])
         ->withAmount("123")
         ->withDiscount("1.2")
@@ -67,7 +67,7 @@ it('can create transaction without receiver (withdraw)', function () {
     expect($transaction->to_type)->toBeNull();
     expect($transaction->type)->toBe(TransactionType::WITHDRAW);
     expect($transaction->metadata->toArray())->toBe([
-        "test" => true
+        "test" => true,
     ]);
     expect($transaction->amount)->toBe("123.00");
     expect($transaction->discount)->toBe("1.20");
@@ -84,7 +84,7 @@ it('can create transaction without sender (deposit)', function () {
         ->to($to)
         ->withType(TransactionType::DEPOSIT)
         ->withMetadata([
-            "test" => true
+            "test" => true,
         ])
         ->withAmount("123")
         ->withDiscount("1.2")
@@ -99,7 +99,7 @@ it('can create transaction without sender (deposit)', function () {
     expect($transaction->from_type)->toBeNull();
     expect($transaction->type)->toBe(TransactionType::DEPOSIT);
     expect($transaction->metadata->toArray())->toBe([
-        "test" => true
+        "test" => true,
     ]);
     expect($transaction->amount)->toBe("123.00");
     expect($transaction->discount)->toBe("1.20");

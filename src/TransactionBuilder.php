@@ -230,6 +230,7 @@ class TransactionBuilder
         // empty amount or unset product will make tax fallback to 0
         if ($amount === "0") {
             $this->withTax("0");
+
             return;
         } // if the tax was not inserted than can be automatically computed using the product instance
         elseif (

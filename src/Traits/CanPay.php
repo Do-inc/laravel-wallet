@@ -27,7 +27,7 @@ trait CanPay
      */
     public function payFree(Product $product): Transaction
     {
-        if(!$product->canBuy($this)) {
+        if (! $product->canBuy($this)) {
             throw new CannotBuyProduct();
         }
 
@@ -73,10 +73,10 @@ trait CanPay
      */
     public function pay(Product $product, bool $confirmed = true): Transaction
     {
-        if (!$product->canBuy($this)) {
+        if (! $product->canBuy($this)) {
             throw new CannotBuyProduct();
         }
-        if(!$this->canWithdraw($product->getCostAttribute($this), true)) {
+        if (! $this->canWithdraw($product->getCostAttribute($this), true)) {
             throw new CannotPay();
         }
 
@@ -118,8 +118,7 @@ trait CanPay
     {
         try {
             return $this->refund($product);
-        }
-        catch (Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }
@@ -209,6 +208,6 @@ trait CanPay
      */
     public function paid(Product $product): bool
     {
-        return !is_null($this->getPayment($product));
+        return ! is_null($this->getPayment($product));
     }
 }

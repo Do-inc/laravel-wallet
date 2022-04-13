@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class SampleMinimalTaxableProduct extends Model implements Product, MinimalTaxable
 {
-    use HasWallet, HasTax;
+    use HasWallet;
+    use HasTax;
 
     /**
      * Check whether the provided customer has enough funds to buy the given quantity of the current product

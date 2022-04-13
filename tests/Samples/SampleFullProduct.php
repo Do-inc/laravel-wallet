@@ -13,7 +13,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class SampleFullProduct extends Model implements Product, MinimalTaxable, Discountable
 {
-    use HasWallet, HasTax, HasDiscount;
+    use HasWallet;
+    use HasTax;
+    use HasDiscount;
 
     /**
      * Check whether the provided customer has enough funds to buy the given quantity of the current product
@@ -88,7 +90,8 @@ class SampleFullProduct extends Model implements Product, MinimalTaxable, Discou
      *
      * @return int
      */
-    public function getTaxPrecisionAttribute(): int {
+    public function getTaxPrecisionAttribute(): int
+    {
         return 3;
     }
 

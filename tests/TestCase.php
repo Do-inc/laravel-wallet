@@ -21,7 +21,7 @@ class TestCase extends Orchestra
         Schema::dropIfExists("wallets");
         Schema::dropIfExists("transactions");
         Schema::dropIfExists("users");
-        Schema::create("users", function(Blueprint $table) {
+        Schema::create("users", function (Blueprint $table) {
             $table->id();
             $table->string("name");
             $table->string("email");

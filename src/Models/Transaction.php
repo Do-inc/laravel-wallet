@@ -58,7 +58,7 @@ class Transaction extends Model
         'confirmed' => 'bool',
         'refunded' => 'bool',
         'metadata' => AsCollection::class,
-        'confirmed_at' => "datetime"
+        'confirmed_at' => "datetime",
     ];
 
     public function from(): MorphTo
@@ -71,15 +71,18 @@ class Transaction extends Model
         return $this->morphTo();
     }
 
-    public function discount(): Attribute {
-        return Attribute::make(set: fn($value) => BigMath::add($value, 0));
+    public function discount(): Attribute
+    {
+        return Attribute::make(set: fn ($value) => BigMath::add($value, 0));
     }
 
-    public function fee(): Attribute {
-        return Attribute::make(set: fn($value) => BigMath::add($value, 0));
+    public function fee(): Attribute
+    {
+        return Attribute::make(set: fn ($value) => BigMath::add($value, 0));
     }
 
-    public function amount(): Attribute {
-        return Attribute::make(set: fn($value) => BigMath::add($value, 0));
+    public function amount(): Attribute
+    {
+        return Attribute::make(set: fn ($value) => BigMath::add($value, 0));
     }
 }

@@ -28,22 +28,25 @@ class TransactionObserver
                 case TransactionType::DEPOSIT:
                 case TransactionType::REFUND:
                     $to->balance = BigMath::add($to->balance, $due);
+
                     break;
                 case TransactionType::WITHDRAW:
                 case TransactionType::PAYMENT:
                     $from->balance = BigMath::sub($from->balance, $due);
+
                     break;
                 case TransactionType::TRANSFER:
                     $from->balance = BigMath::sub($from->balance, $due);
                     $to->balance = BigMath::add($to->balance, $due);
+
                     break;
             }
 
             // save modification
-            if (!is_null($from)) {
+            if (! is_null($from)) {
                 $from->save();
             }
-            if (!is_null($to)) {
+            if (! is_null($to)) {
                 $to->save();
             }
         }
@@ -65,6 +68,7 @@ class TransactionObserver
             switch ($transaction->type) {
                 case TransactionType::DEPOSIT:
                     $receiver->balance = BigMath::add($receiver->balance, $due);
+
                     break;
                 case TransactionType::REFUND:
                     if(!$transaction->refunded) {
@@ -76,15 +80,17 @@ class TransactionObserver
                 case TransactionType::WITHDRAW:
                 case TransactionType::PAYMENT:
                     $sender->balance = BigMath::sub($sender->balance, $due);
+
                     break;
                 case TransactionType::TRANSFER:
-                    if (!is_null($sender) && $transaction->from_id === $sender->id) {
+                    if (! is_null($sender) && $transaction->from_id === $sender->id) {
                         $sender->balance = BigMath::sub($sender->balance, $due);
                     }
 
-                    if (!is_null($receiver) && $transaction->to_id === $receiver->id){
+                    if (! is_null($receiver) && $transaction->to_id === $receiver->id) {
                         $receiver->balance = BigMath::add($receiver->balance, $due);
                     }
+
                     break;
             }
         }

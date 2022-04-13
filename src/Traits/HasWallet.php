@@ -54,7 +54,7 @@ trait HasWallet
      */
     public function withdraw(float|int|string $amount, array $metadata = [], bool $confirmed = true): Transaction
     {
-        if (!$this->canWithdraw($amount, true)) {
+        if (! $this->canWithdraw($amount, true)) {
             throw new CannotWithdraw();
         }
 
@@ -101,12 +101,11 @@ trait HasWallet
         int|float|string $amount,
         array            $metadata = [],
         bool             $confirmed = true
-    ): Transaction
-    {
-        if (!$this->canWithdraw($amount, true)) {
+    ): Transaction {
+        if (! $this->canWithdraw($amount, true)) {
             throw new CannotTransfer();
         }
-        if (!$recipient instanceof WalletModel) {
+        if (! $recipient instanceof WalletModel) {
             throw new InvalidWalletModelProvided();
         }
 
@@ -139,8 +138,7 @@ trait HasWallet
         int|float|string $amount,
         array            $metadata = [],
         bool             $confirmed = true
-    ): ?Transaction
-    {
+    ): ?Transaction {
         try {
             return $this->transfer($recipient, $amount, $metadata, $confirmed);
         } catch (Throwable) {
@@ -173,8 +171,8 @@ trait HasWallet
     public function canWithdraw(int|float|string $amount, bool $allow_zero = false): bool
     {
         return BigMath::higherThan($this->balance, $amount) || (
-                $allow_zero && BigMath::equal($this->balance, $amount)
-            );
+            $allow_zero && BigMath::equal($this->balance, $amount)
+        );
     }
 
     /**
