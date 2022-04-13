@@ -43,11 +43,12 @@ jobs:
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
           composer update --${{ matrix.stability }} --prefer-dist --no-interaction
 
-      - name: Execute tests
+      - name: Run coverage
         run: |
           rm -f ./database/database.sqlite
           touch ./database/database.sqlite
-          COVERAGE=$(./vendor/bin/pest --coverage | grep 'Cov:' | tr -d '[:blank:]' | tr -d 'Cov:' | tr -d '%')
+          COVERAGE=$(./vendor/bin/pest --coverage --colors=never | grep 'Cov:' | tr -d '[:blank:]' | tr -d 'Cov:' | tr -d '%')
+          echo $COVERAGE
           echo "COVERAGE=${COVERAGE}" >> $GITHUB_ENV
 
           if [[ $(echo "${COVERAGE} < 40" | bc) -eq 1 ]]; then
