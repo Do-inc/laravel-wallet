@@ -2,9 +2,9 @@ name: coverage
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   test:
@@ -12,10 +12,10 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest]
-        php: [8.1]
-        laravel: [9.*]
-        stability: [prefer-stable]
+        os: [ ubuntu-latest ]
+        php: [ 8.1 ]
+        laravel: [ 9.* ]
+        stability: [ prefer-stable ]
         include:
           - laravel: 9.*
             testbench: 7.*
@@ -57,8 +57,8 @@ jobs:
           else
             echo "BADGE_COLOR=green" >> $GITHUB_ENV
           fi
-      - name: Create the Badge
-        uses: schneegans/dynamic-badges-action
+      - name: Create coverage badge
+        uses: schneegans/dynamic-badges-action@v1.2.0
         with:
           auth: ${{ secrets.GIST_TOKEN }}
           gistID: 45584b0dc38ce224d546245721105bdf
