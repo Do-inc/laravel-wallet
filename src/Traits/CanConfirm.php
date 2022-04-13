@@ -2,7 +2,6 @@
 
 namespace Doinc\Wallet\Traits;
 
-use Doinc\Wallet\Enums\TransactionType;
 use Doinc\Wallet\Events\TransactionConfirmationReset;
 use Doinc\Wallet\Events\TransactionConfirmed;
 use Doinc\Wallet\Exceptions\InvalidWalletModelProvided;
@@ -32,12 +31,6 @@ trait CanConfirm
 
         $wallet = $this->getWallet($this);
         $this->checkWalletOwner($wallet, $transaction);
-
-        if ($transaction->type === TransactionType::DEPOSIT) {
-            $wallet->deposit($transaction->amount);
-        } else {
-            $wallet->withdraw($transaction->amount);
-        }
 
         TransactionConfirmed::dispatch($wallet, $transaction);
 
@@ -73,7 +66,7 @@ trait CanConfirm
      */
     public function resetConfirm(Transaction $transaction): bool
     {
-        if (! $transaction->confirmed) {
+        if (!$transaction->confirmed) {
             return true;
         }
 
@@ -113,12 +106,12 @@ trait CanConfirm
     protected function getWallet(object $wallet): Wallet
     {
         // if the provided object is not a wallet instance try retrieving the underlying wallet instance
-        if (! $wallet instanceof Wallet) {
+        if (!$wallet instanceof Wallet) {
             $wallet = $wallet->wallet;
         }
 
         // if the wallet object still is not a wallet instance throw
-        if (! $wallet instanceof Wallet) {
+        if (!$wallet instanceof Wallet) {
             throw new InvalidWalletModelProvided();
         }
 
