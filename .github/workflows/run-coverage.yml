@@ -56,7 +56,7 @@ jobs:
           elif [[ $(echo "$COVERAGE < 80" | bc) -eq 1 ]]; then
             echo "BADGE_COLOR=yellow" >> $GITHUB_ENV
           else
-            echo "BADGE_COLOR=green" >> $GITHUB_ENV
+            echo "BADGE_COLOR=#30C251" >> $GITHUB_ENV
           fi
       - name: Create coverage badge
         uses: schneegans/dynamic-badges-action@v1.2.0
