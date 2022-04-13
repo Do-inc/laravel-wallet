@@ -71,5 +71,9 @@ return [
             "message" => "Cannot pay, balance is not enough",
             "code" => 1007,
         ],
+        "CANNOT_REFUND_UNPAID_PRODUCT" => [
+            "message" => "Cannot refund, the product have never been bought",
+            "code" => 1008,
+        ],
     ],
 ];

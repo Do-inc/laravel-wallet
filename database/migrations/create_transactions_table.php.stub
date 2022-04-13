@@ -24,6 +24,7 @@ return new class extends Migration
             $types = array_map(fn(TransactionType $type) => $type->value, TransactionType::cases());
             $table->enum('type', $types)->index();
             $table->string("amount")->default("0");
+            $table->boolean("refunded")->default(false);
             $table->boolean("confirmed")->default(true);
             $table->timestamp("confirmed_at")->nullable();
             $table->longText("metadata")->nullable();

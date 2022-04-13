@@ -5,10 +5,12 @@ namespace Doinc\Wallet\Traits;
 use Doinc\Wallet\Enums\TransactionType;
 use Doinc\Wallet\Exceptions\CannotBuyProduct;
 use Doinc\Wallet\Exceptions\CannotPay;
+use Doinc\Wallet\Exceptions\CannotRefundUnpaidProduct;
 use Doinc\Wallet\Interfaces\Product;
 use Doinc\Wallet\Models\Transaction;
 use Doinc\Wallet\Observers\TransactionObserver;
 use Doinc\Wallet\TransactionBuilder;
+use Illuminate\Support\Collection;
 use Throwable;
 
 trait CanPay
@@ -132,6 +134,10 @@ trait CanPay
      */
     public function refund(Product $product, bool $confirmed = true): Transaction
     {
+        if(!$this->paid($product)) {
+            throw new CannotRefundUnpaidProduct();
+        }
+
         $transaction = TransactionBuilder::init()
             ->from($product)
             ->to($this)
@@ -140,6 +146,11 @@ trait CanPay
             ->syncWithProductMetadata()
             ->get(compute_cost_from_product: true);
         $transaction->saveOrFail();
+
+        $this->getPayment($product)->update([
+            "refunded" => true
+        ]);
+
         TransactionObserver::applyTransactionOnTheFly($transaction, receiver: $this);
 
         return $transaction;
@@ -169,8 +180,25 @@ trait CanPay
             ->where("to_type", $product->getMorphClass())
             ->where("to_id", $product->getKey())
             ->where("status", TransactionType::PAYMENT)
+            ->where("refunded", false)
             ->orderByDesc("id")
             ->first();
+    }
+
+    /**
+     * Get all the payments for the provided product if they exists
+     *
+     * @param Product $product Product to look for
+     * @return Collection<Transaction>
+     */
+    public function getAllPayments(Product $product): Collection {
+        return $this->transactions()
+            ->where("to_type", $product->getMorphClass())
+            ->where("to_id", $product->getKey())
+            ->where("status", TransactionType::PAYMENT)
+            ->where("refunded", false)
+            ->orderByDesc("id")
+            ->get();
     }
 
     /**

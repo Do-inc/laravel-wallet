@@ -64,8 +64,14 @@ class TransactionObserver
             $due = BigMath::sub(BigMath::add($transaction->amount, $transaction->fee), $transaction->discount);
             switch ($transaction->type) {
                 case TransactionType::DEPOSIT:
-                case TransactionType::REFUND:
                     $receiver->balance = BigMath::add($receiver->balance, $due);
+                    break;
+                case TransactionType::REFUND:
+                    if(!$transaction->refunded) {
+                        // the amount to refund is always only the paid amount without the fee
+                        $due = BigMath::sub($transaction->amount, $transaction->discount);
+                        $receiver->balance = BigMath::add($receiver->balance, $due);
+                    }
                     break;
                 case TransactionType::WITHDRAW:
                 case TransactionType::PAYMENT:

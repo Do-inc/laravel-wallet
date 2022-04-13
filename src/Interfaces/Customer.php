@@ -3,6 +3,7 @@
 namespace Doinc\Wallet\Interfaces;
 
 use Doinc\Wallet\Models\Transaction;
+use Illuminate\Support\Collection;
 
 interface Customer extends Wallet
 {
@@ -62,6 +63,14 @@ interface Customer extends Wallet
      * @return Transaction|null
      */
     public function getPayment(Product $product): ?Transaction;
+
+    /**
+     * Get all the payments for the provided product if they exists
+     *
+     * @param Product $product Product to look for
+     * @return Collection<Transaction>
+     */
+    public function getAllPayments(Product $product): Collection;
 
     /**
      * Whether the provided product was bought

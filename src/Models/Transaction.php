@@ -20,6 +20,7 @@ use Illuminate\Support\Collection;
  * @property string $to_type
  * @property TransactionType $type
  * @property string $amount
+ * @property bool $refunded
  * @property bool $confirmed
  * @property Carbon $confirmed_at
  * @property Collection $metadata
@@ -55,6 +56,7 @@ class Transaction extends Model
     protected $casts = [
         "type" => TransactionType::class,
         'confirmed' => 'bool',
+        'refunded' => 'bool',
         'metadata' => AsCollection::class,
         'confirmed_at' => "datetime"
     ];

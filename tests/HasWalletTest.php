@@ -159,7 +159,7 @@ it('can run safe transfer', function () {
 it('can get null response from safe transfer', function () {
     /** @var Wallet $wallet */
     /** @var Wallet $receiver */
-    $wallet = Wallet::factory(2)->create();
+    $wallet = Wallet::factory()->create();
     $wallet->deposit(10, ["test" => false]);
     $product = new SampleFullProduct();
 
