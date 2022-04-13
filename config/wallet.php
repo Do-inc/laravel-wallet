@@ -15,30 +15,18 @@ return [
      * | Decimal precision
      * |--------------------------------------------------------------------------
      * |
-     * | Define the decimal precision used while doing calculus
+     * | Define the decimal precision used while doing calculus.
+     * | Global is applied in during database creation and defines the default
+     * | number of decimals for the wallets.
+     * | Fee is the default number of decimals applied in taxable models.
+     * | Discount is the default number of decimals applied in discountable models.
      * |
      */
-    "decimals" => 2,
-
-    /*
-     * |--------------------------------------------------------------------------
-     * | Decimal precision for fee value
-     * |--------------------------------------------------------------------------
-     * |
-     * | Define the decimal precision used while applying fees
-     * |
-     */
-    "fee_decimals" => 6,
-
-    /*
-     * |--------------------------------------------------------------------------
-     * | Decimal precision for discount value
-     * |--------------------------------------------------------------------------
-     * |
-     * | Define the decimal precision used while applying discounts
-     * |
-     */
-    "discount_decimals" => 6,
+    "precision" => [
+        "global" => 2,
+        "tax" => 2,
+        "discount" => 2,
+    ],
 
     /*
      * |--------------------------------------------------------------------------
@@ -70,6 +58,18 @@ return [
         "UNABLE_TO_CREATE_TRANSACTION" => [
             "message" => "Something went wrong during the creation of transaction",
             "code" => 1004,
+        ],
+        "CANNOT_WITHDRAW" => [
+            "message" => "Cannot withdraw, balance is not enough",
+            "code" => 1005,
+        ],
+        "CANNOT_TRANSFER" => [
+            "message" => "Cannot transfer, balance is not enough",
+            "code" => 1006,
+        ],
+        "CANNOT_PAY" => [
+            "message" => "Cannot pay, balance is not enough",
+            "code" => 1007,
         ],
     ],
 ];

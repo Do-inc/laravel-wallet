@@ -2,10 +2,12 @@
 
 namespace Doinc\Wallet;
 
+use Doinc\Wallet\Models\Transaction;
+use Doinc\Wallet\Observers\TransactionObserver;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class LaravelWalletServiceProvider extends PackageServiceProvider
+class WalletServiceProvider extends PackageServiceProvider
 {
     public function configurePackage(Package $package): void
     {
@@ -15,12 +17,17 @@ class LaravelWalletServiceProvider extends PackageServiceProvider
          * More info: https://github.com/spatie/laravel-package-tools
          */
         $package
-            ->name('doinc-wallet')
+            ->name('wallet')
             ->hasConfigFile()
             ->hasMigrations([
                 "create_wallets_table",
                 "create_transactions_table",
-                "create_transfers_table",
             ]);
+    }
+
+    public function bootingPackage()
+    {
+        Transaction::observe(TransactionObserver::class);
+        parent::bootingPackage();
     }
 }

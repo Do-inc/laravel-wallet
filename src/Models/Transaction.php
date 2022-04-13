@@ -2,48 +2,51 @@
 
 namespace Doinc\Wallet\Models;
 
-use Bavix\Wallet\Interfaces\Wallet;
-use Bavix\Wallet\Internal\Service\MathServiceInterface;
-use Bavix\Wallet\Models\Wallet as WalletModel;
-use Bavix\Wallet\Services\CastServiceInterface;
+use Carbon\Carbon;
+use Doinc\Wallet\BigMath;
 use Doinc\Wallet\Enums\TransactionType;
+use Illuminate\Database\Eloquent\Casts\AsCollection;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Collection;
 
 /**
- * Class Transaction.
- *
- * @property string $payable_type
- * @property int $payable_id
- * @property int $wallet_id
- * @property string $uuid
+ * @property int|string $id
+ * @property string|int $from_id
+ * @property string $from_type
+ * @property string|int $to_id
+ * @property string $to_type
  * @property TransactionType $type
  * @property string $amount
- * @property int $amountInt
- * @property string $amountFloat
  * @property bool $confirmed
- * @property array $meta
- * @property Wallet $payable
- * @property WalletModel $wallet
+ * @property Carbon $confirmed_at
+ * @property Collection $metadata
+ * @property string $discount
+ * @property string $fee
+ * @property Model $from
+ * @property Model $to
  */
 class Transaction extends Model
 {
-    public const TYPE_DEPOSIT = 'deposit';
-    public const TYPE_WITHDRAW = 'withdraw';
+    use HasFactory;
 
     /**
      * @var string[]
      */
     protected $fillable = [
-        'payable_type',
-        'payable_id',
-        'wallet_id',
-        'uuid',
-        'type',
-        'amount',
-        'confirmed',
-        'meta',
+        "from_id",
+        "from_type",
+        "to_id",
+        "to_type",
+        "type",
+        "amount",
+        "confirmed",
+        "confirmed_at",
+        "metadata",
+        "discount",
+        "fee",
     ];
 
     /**
@@ -51,57 +54,30 @@ class Transaction extends Model
      */
     protected $casts = [
         "type" => TransactionType::class,
-        'wallet_id' => 'int',
         'confirmed' => 'bool',
-        'meta' => 'json',
+        'metadata' => AsCollection::class,
+        'confirmed_at' => "datetime"
     ];
 
-    public function getTable(): string
-    {
-        if (! $this->table) {
-            $this->table = config('wallet.transaction.table', 'transactions');
-        }
-
-        return parent::getTable();
-    }
-
-    public function payable(): MorphTo
+    public function from(): MorphTo
     {
         return $this->morphTo();
     }
 
-    public function wallet(): BelongsTo
+    public function to(): MorphTo
     {
-        return $this->belongsTo(config('wallet.wallet.model', WalletModel::class));
+        return $this->morphTo();
     }
 
-    public function getAmountIntAttribute(): int
-    {
-        return (int)$this->amount;
+    public function discount(): Attribute {
+        return Attribute::make(set: fn($value) => BigMath::add($value, 0));
     }
 
-    public function getAmountFloatAttribute(): string
-    {
-        $math = app(MathServiceInterface::class);
-        $decimalPlacesValue = app(CastServiceInterface::class)
-            ->getWallet($this->wallet)
-            ->decimal_places;
-        $decimalPlaces = $math->powTen($decimalPlacesValue);
-
-        return $math->div($this->amount, $decimalPlaces);
+    public function fee(): Attribute {
+        return Attribute::make(set: fn($value) => BigMath::add($value, 0));
     }
 
-    /**
-     * @param float|int|string $amount
-     */
-    public function setAmountFloatAttribute($amount): void
-    {
-        $math = app(MathServiceInterface::class);
-        $decimalPlacesValue = app(CastServiceInterface::class)
-            ->getWallet($this->wallet)
-            ->decimal_places;
-        $decimalPlaces = $math->powTen($decimalPlacesValue);
-
-        $this->amount = $math->round($math->mul($amount, $decimalPlaces));
+    public function amount(): Attribute {
+        return Attribute::make(set: fn($value) => BigMath::add($value, 0));
     }
 }

@@ -2,220 +2,216 @@
 
 namespace Doinc\Wallet\Traits;
 
-use function app;
-use Bavix\Wallet\Exceptions\AmountInvalid;
-use Bavix\Wallet\Exceptions\BalanceIsEmpty;
-use Bavix\Wallet\Exceptions\InsufficientFunds;
-use Bavix\Wallet\Interfaces\Wallet;
-use Bavix\Wallet\Internal\Exceptions\ExceptionInterface;
-use Bavix\Wallet\Internal\Exceptions\LockProviderNotFoundException;
-use Bavix\Wallet\Internal\Exceptions\TransactionFailedException;
-use Bavix\Wallet\Internal\Service\MathServiceInterface;
-use Bavix\Wallet\Models\Transaction;
-use Bavix\Wallet\Models\Transfer;
-use Bavix\Wallet\Models\Wallet as WalletModel;
-use Bavix\Wallet\Services\AtomicServiceInterface;
-use Bavix\Wallet\Services\CastServiceInterface;
-use Bavix\Wallet\Services\CommonServiceLegacy;
-use Bavix\Wallet\Services\ConsistencyServiceInterface;
-use Bavix\Wallet\Services\RegulatorServiceInterface;
-use function config;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Doinc\Wallet\BigMath;
+use Doinc\Wallet\Enums\TransactionType;
+use Doinc\Wallet\Exceptions\CannotTransfer;
+use Doinc\Wallet\Exceptions\CannotWithdraw;
+use Doinc\Wallet\Exceptions\InvalidWalletModelProvided;
+use Doinc\Wallet\Interfaces\Wallet;
+use Doinc\Wallet\Models\Transaction;
+use Doinc\Wallet\Models\Wallet as WalletModel;
+use Doinc\Wallet\Observers\TransactionObserver;
+use Doinc\Wallet\TransactionBuilder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Database\RecordsNotFoundException;
-use Illuminate\Support\Collection;
+use Throwable;
 
-/**
- * Trait HasWallet.
- *
- * @property Collection|WalletModel[] $wallets
- * @property string                   $balance
- * @property int                      $balanceInt
- * @psalm-require-extends \Illuminate\Database\Eloquent\Model
- * @psalm-require-implements \Bavix\Wallet\Interfaces\Wallet
- */
 trait HasWallet
 {
-    use MorphOneWallet;
-
     /**
-     * The input means in the system.
+     * Top up the wallet with the provided amount
      *
-     * @param int|string $amount
+     * @param int|float|string $amount Funds to add to the wallet
+     * @param array $metadata Optional metadata to add to the transaction
+     * @param bool $confirmed Whether the transaction was confirmed or not, defaults to confirmed
+     * @return Transaction
+     * @throws Throwable
+     */
+    public function deposit(int|float|string $amount, array $metadata = [], bool $confirmed = true): Transaction
+    {
+        $transaction = TransactionBuilder::init()
+            ->to($this)
+            ->withAmount($amount)
+            ->withMetadata($metadata)
+            ->withType(TransactionType::DEPOSIT)
+            ->isConfirmed($confirmed)
+            ->get();
+        $transaction->saveOrFail();
+        TransactionObserver::applyTransactionOnTheFly($transaction, receiver: $this);
+
+        return $transaction;
+    }
+
+    /**
+     * Withdraw the provided amount of funds from the wallet
      *
-     * @throws AmountInvalid
-     * @throws LockProviderNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ExceptionInterface
+     * @param float|int|string $amount Funds to withdraw from the wallet
+     * @param array $metadata Optional metadata to add to the transaction
+     * @param bool $confirmed Whether the transaction was confirmed or not, defaults to confirmed
+     * @return Transaction
+     * @throws CannotTransfer
+     * @throws Throwable
      */
-    public function deposit($amount, ?array $meta = null, bool $confirmed = true): Transaction
+    public function withdraw(float|int|string $amount, array $metadata = [], bool $confirmed = true): Transaction
     {
-        return app(AtomicServiceInterface::class)->block(
-            $this,
-            fn () => app(CommonServiceLegacy::class)
-                ->makeTransaction($this, Transaction::TYPE_DEPOSIT, $amount, $meta, $confirmed)
-        );
+        if (!$this->canWithdraw($amount, true)) {
+            throw new CannotWithdraw();
+        }
+
+        $transaction = TransactionBuilder::init()
+            ->from($this)
+            ->withAmount($amount)
+            ->withMetadata($metadata)
+            ->withType(TransactionType::WITHDRAW)
+            ->isConfirmed($confirmed)
+            ->get();
+        $transaction->saveOrFail();
+        TransactionObserver::applyTransactionOnTheFly($transaction, $this);
+
+        return $transaction;
     }
 
     /**
-     * Magic laravel framework method, makes it possible to call property balance.
+     * Forcefully withdraw funds from the wallet without caring if the balance is 0 or negative
      *
-     * @return float|int|string
+     * @param float|int|string $amount Funds to withdraw from the wallet
+     * @param array $metadata Optional metadata to add to the transaction
+     * @return Transaction
+     * @throws Throwable
      */
-    public function getBalanceAttribute()
+    public function forceWithdraw(float|int|string $amount, array $metadata = []): Transaction
     {
-        /** @var Wallet $this */
-        return app(RegulatorServiceInterface::class)->amount(app(CastServiceInterface::class)->getWallet($this));
-    }
-
-    public function getBalanceIntAttribute(): int
-    {
-        return (int) $this->getBalanceAttribute();
+        return $this->withdraw($amount, $metadata);
     }
 
     /**
-     * We receive transactions of the selected wallet.
-     */
-    public function walletTransactions(): HasMany
-    {
-        return app(CastServiceInterface::class)
-            ->getWallet($this)
-            ->hasMany(config('wallet.transaction.model', Transaction::class), 'wallet_id')
-        ;
-    }
-
-    /**
-     * all user actions on wallets will be in this method.
-     */
-    public function transactions(): MorphMany
-    {
-        return app(CastServiceInterface::class)
-            ->getHolder($this)
-            ->morphMany(config('wallet.transaction.model', Transaction::class), 'payable')
-        ;
-    }
-
-    /**
-     * This method ignores errors that occur when transferring funds.
+     * Transfer the provided amount of funds from the wallet to the recipient address
      *
-     * @param int|string $amount
+     * @param Wallet $recipient Wallet where the funds will be transferred
+     * @param int|float|string $amount Funds to transfer from the wallet
+     * @param array $metadata Optional metadata to add to the transaction
+     * @param bool $confirmed Whether the transaction was confirmed or not, defaults to confirmed
+     * @return Transaction
+     * @throws CannotTransfer
+     * @throws InvalidWalletModelProvided
+     * @throws Throwable
      */
-    public function safeTransfer(Wallet $wallet, $amount, ?array $meta = null): ?Transfer
+    public function transfer(
+        Wallet           $recipient,
+        int|float|string $amount,
+        array            $metadata = [],
+        bool             $confirmed = true
+    ): Transaction
+    {
+        if (!$this->canWithdraw($amount, true)) {
+            throw new CannotTransfer();
+        }
+        if (!$recipient instanceof WalletModel) {
+            throw new InvalidWalletModelProvided();
+        }
+
+        $transaction = TransactionBuilder::init()
+            ->from($this)
+            ->to($recipient)
+            ->withAmount($amount)
+            ->withMetadata($metadata)
+            ->withType(TransactionType::TRANSFER)
+            ->isConfirmed($confirmed)
+            ->get();
+        $transaction->saveOrFail();
+        TransactionObserver::applyTransactionOnTheFly($transaction, $this, $recipient);
+
+        return $transaction;
+    }
+
+    /**
+     * Transfer the provided amount of funds from the wallet to the recipient address without firing any exception,
+     * if exception occurs silence them and returns a null object
+     *
+     * @param Wallet $recipient Wallet where the funds will be transferred
+     * @param int|float|string $amount Funds to transfer from the wallet
+     * @param array $metadata Optional metadata to add to the transaction
+     * @param bool $confirmed Whether the transaction was confirmed or not, defaults to confirmed
+     * @return Transaction|null
+     */
+    public function safeTransfer(
+        Wallet           $recipient,
+        int|float|string $amount,
+        array            $metadata = [],
+        bool             $confirmed = true
+    ): ?Transaction
     {
         try {
-            return $this->transfer($wallet, $amount, $meta);
-        } catch (ExceptionInterface) {
+            return $this->transfer($recipient, $amount, $metadata, $confirmed);
+        } catch (Throwable) {
             return null;
         }
     }
 
     /**
-     * A method that transfers funds from host to host.
+     * Forcefully transfer the provided amount of funds from the wallet to the recipient address without caring if the
+     * balance is 0 or negative
      *
-     * @param int|string $amount
-     *
-     * @throws AmountInvalid
-     * @throws BalanceIsEmpty
-     * @throws InsufficientFunds
-     * @throws LockProviderNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ExceptionInterface
+     * @param Wallet $recipient Wallet where the funds will be transferred
+     * @param int|float|string $amount Funds to transfer from the wallet
+     * @param array $metadata Optional metadata to add to the transaction
+     * @return Transaction
+     * @throws Throwable
      */
-    public function transfer(Wallet $wallet, $amount, ?array $meta = null): Transfer
+    public function forceTransfer(Wallet $recipient, int|float|string $amount, array $metadata = []): Transaction
     {
-        /** @var Wallet $this */
-        app(ConsistencyServiceInterface::class)->checkPotential($this, $amount);
-
-        return $this->forceTransfer($wallet, $amount, $meta);
+        return $this->transfer($recipient, $amount, $metadata);
     }
 
     /**
-     * Withdrawals from the system.
+     * Check whether the balance is enough to withdraw the provided amount
      *
-     * @param int|string $amount
-     *
-     * @throws AmountInvalid
-     * @throws BalanceIsEmpty
-     * @throws InsufficientFunds
-     * @throws LockProviderNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ExceptionInterface
+     * @param int|float|string $amount
+     * @param bool $allow_zero
+     * @return bool
      */
-    public function withdraw($amount, ?array $meta = null, bool $confirmed = true): Transaction
+    public function canWithdraw(int|float|string $amount, bool $allow_zero = false): bool
     {
-        /** @var Wallet $this */
-        app(ConsistencyServiceInterface::class)->checkPotential($this, $amount);
-
-        return $this->forceWithdraw($amount, $meta, $confirmed);
+        return BigMath::higherThan($this->balance, $amount) || (
+                $allow_zero && BigMath::equal($this->balance, $amount)
+            );
     }
 
     /**
-     * Checks if you can withdraw funds.
+     * Retrieve all the wallet transaction
      *
-     * @param float|int|string $amount
+     * @return Builder
      */
-    public function canWithdraw($amount, bool $allowZero = false): bool
+    public function transactions(): Builder
     {
-        $mathService = app(MathServiceInterface::class);
-        $wallet = app(CastServiceInterface::class)->getWallet($this);
-        $balance = $mathService->add($this->getBalanceAttribute(), $wallet->getCreditAttribute());
-
-        return app(ConsistencyServiceInterface::class)->canWithdraw($balance, $amount, $allowZero);
+        return Transaction::query()
+            ->where(function (Builder $builder) {
+                $builder->where("from_type", $this->getMorphClass())
+                    ->where("from_id", $this->getKey());
+            })
+            ->orWhere(function (Builder $builder) {
+                $builder->where("to_type", $this->getMorphClass())
+                    ->where("to_id", $this->getKey());
+            });
     }
 
     /**
-     * Forced to withdraw funds from system.
+     * Retrieve all the sent transaction
      *
-     * @param int|string $amount
-     *
-     * @throws AmountInvalid
-     * @throws LockProviderNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ExceptionInterface
+     * @return MorphMany
      */
-    public function forceWithdraw($amount, ?array $meta = null, bool $confirmed = true): Transaction
+    public function sentTransactions(): MorphMany
     {
-        return app(AtomicServiceInterface::class)->block(
-            $this,
-            fn () => app(CommonServiceLegacy::class)
-                ->makeTransaction($this, Transaction::TYPE_WITHDRAW, $amount, $meta, $confirmed)
-        );
+        return $this->morphMany(Transaction::class, "from");
     }
 
     /**
-     * the forced transfer is needed when the user does not have the money, and we drive it. Sometimes you do. Depends
-     * on business logic.
+     * Retrieve all the received transaction
      *
-     * @param int|string $amount
-     *
-     * @throws AmountInvalid
-     * @throws LockProviderNotFoundException
-     * @throws RecordsNotFoundException
-     * @throws TransactionFailedException
-     * @throws ExceptionInterface
+     * @return MorphMany
      */
-    public function forceTransfer(Wallet $wallet, $amount, ?array $meta = null): Transfer
+    public function receivedTransactions(): MorphMany
     {
-        return app(AtomicServiceInterface::class)->block(
-            $this,
-            fn () => app(CommonServiceLegacy::class)
-                ->forceTransfer($this, $wallet, $amount, $meta)
-        );
-    }
-
-    /**
-     * the transfer table is used to confirm the payment this method receives all transfers.
-     */
-    public function transfers(): MorphMany
-    {
-        /** @var Wallet $this */
-        return app(CastServiceInterface::class)
-            ->getWallet($this, false)
-            ->morphMany(config('wallet.transfer.model', Transfer::class), 'from')
-        ;
+        return $this->morphMany(Transaction::class, "to");
     }
 }

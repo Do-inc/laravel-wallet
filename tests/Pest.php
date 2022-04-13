@@ -1,5 +1,5 @@
 <?php
 
-use Doinc\LaravelWallet\Tests\TestCase;
+use Doinc\Wallet\Tests\TestCase;
 
 uses(TestCase::class)->in(__DIR__);

@@ -2,12 +2,15 @@
 
 namespace Doinc\Wallet\Interfaces;
 
+/**
+ * @property int|string $minimum_tax
+ */
 interface MinimalTaxable extends Taxable
 {
     /**
      * Defines the minimum fee that will be applied to a product if the fee is lower than this value
      *
-     * @return int|float|string
+     * @return int|string
      */
-    public function getMinimumFeeAttribute(): int|float|string;
+    public function getMinimumTaxAttribute(): int|string;
 }

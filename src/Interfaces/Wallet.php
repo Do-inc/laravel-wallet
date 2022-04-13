@@ -3,7 +3,7 @@
 namespace Doinc\Wallet\Interfaces;
 
 use Doinc\Wallet\Models\Transaction;
-use Doinc\Wallet\Models\Transfer;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 interface Wallet
@@ -12,41 +12,41 @@ interface Wallet
      * Top up the wallet with the provided amount
      *
      * @param int|float|string $amount Funds to add to the wallet
-     * @param array|null $metadata Optional metadata to add to the transaction
+     * @param array $metadata Optional metadata to add to the transaction
      * @param bool $confirmed Whether the transaction was confirmed or not, defaults to confirmed
      * @return Transaction
      */
-    public function deposit(int|float|string $amount, ?array $metadata = null, bool $confirmed = true): Transaction;
+    public function deposit(int|float|string $amount, array $metadata = [], bool $confirmed = true): Transaction;
 
     /**
      * Withdraw the provided amount of funds from the wallet
      *
      * @param int|float|string $amount Funds to withdraw from the wallet
-     * @param array|null $metadata Optional metadata to add to the transaction
+     * @param array $metadata Optional metadata to add to the transaction
      * @param bool $confirmed Whether the transaction was confirmed or not, defaults to confirmed
      * @return Transaction
      */
-    public function withdraw(int|float|string $amount, ?array $metadata = null, bool $confirmed = true): Transaction;
+    public function withdraw(int|float|string $amount, array $metadata = [], bool $confirmed = true): Transaction;
 
     /**
      * Forcefully withdraw funds from the wallet without caring if the balance is 0 or negative
      *
      * @param int|float|string $amount Funds to withdraw from the wallet
-     * @param array|null $metadata Optional metadata to add to the transaction
-     * @param bool $confirmed Whether the transaction was confirmed or not, defaults to confirmed
+     * @param array $metadata Optional metadata to add to the transaction
      * @return Transaction
      */
-    public function forceWithdraw(int|float|string $amount, ?array $metadata = null, bool $confirmed = true): Transaction;
+    public function forceWithdraw(int|float|string $amount, array $metadata = []): Transaction;
 
     /**
      * Transfer the provided amount of funds from the wallet to the recipient address
      *
      * @param Wallet $recipient Wallet where the funds will be transferred
      * @param int|float|string $amount Funds to transfer from the wallet
-     * @param array|null $metadata Optional metadata to add to the transaction
-     * @return Transfer
+     * @param array $metadata Optional metadata to add to the transaction
+     * @param bool $confirmed Whether the transaction was confirmed or not, defaults to confirmed
+     * @return Transaction
      */
-    public function transfer(self $recipient, int|float|string $amount, ?array $metadata = null): Transfer;
+    public function transfer(Wallet $recipient, int|float|string $amount, array $metadata = [], bool $confirmed = true): Transaction;
 
     /**
      * Transfer the provided amount of funds from the wallet to the recipient address without firing any exception,
@@ -54,10 +54,11 @@ interface Wallet
      *
      * @param Wallet $recipient Wallet where the funds will be transferred
      * @param int|float|string $amount Funds to transfer from the wallet
-     * @param array|null $metadata Optional metadata to add to the transaction
-     * @return Transfer|null
+     * @param array $metadata Optional metadata to add to the transaction
+     * @param bool $confirmed Whether the transaction was confirmed or not, defaults to confirmed
+     * @return Transaction|null
      */
-    public function safeTransfer(self $recipient, int|float|string $amount, ?array $metadata = null): ?Transfer;
+    public function safeTransfer(Wallet $recipient, int|float|string $amount, array $metadata = [], bool $confirmed = true): ?Transaction;
 
     /**
      * Forcefully transfer the provided amount of funds from the wallet to the recipient address without caring if the
@@ -65,10 +66,10 @@ interface Wallet
      *
      * @param Wallet $recipient Wallet where the funds will be transferred
      * @param int|float|string $amount Funds to transfer from the wallet
-     * @param array|null $metadata Optional metadata to add to the transaction
-     * @return Transfer
+     * @param array $metadata Optional metadata to add to the transaction
+     * @return Transaction
      */
-    public function forceTransfer(self $recipient, int|float|string $amount, ?array $metadata = null): Transfer;
+    public function forceTransfer(Wallet $recipient, int|float|string $amount, array $metadata = []): Transaction;
 
     /**
      * Check whether the balance is enough to withdraw the provided amount
@@ -80,30 +81,23 @@ interface Wallet
     public function canWithdraw(int|float|string $amount, bool $allow_zero = false): bool;
 
     /**
-     * Get the formatted balance of the wallet
-     *
-     * @return string
-     */
-    public function getBalanceAttribute(): string;
-
-    /**
-     * Get the raw balance of the wallet
-     *
-     * @return string
-     */
-    public function getRawBalanceAttribute(): string;
-
-    /**
      * Retrieve all the wallet transaction
      *
-     * @return MorphMany
+     * @return Builder
      */
-    public function transactions(): MorphMany;
+    public function transactions(): Builder;
 
     /**
-     * Retrieve all the wallet transfers
+     * Retrieve all the sent transaction
      *
      * @return MorphMany
      */
-    public function transfers(): MorphMany;
+    public function sentTransactions(): MorphMany;
+
+    /**
+     * Retrieve all the received transaction
+     *
+     * @return MorphMany
+     */
+    public function receivedTransactions(): MorphMany;
 }

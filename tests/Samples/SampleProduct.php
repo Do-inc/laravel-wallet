@@ -1,13 +1,16 @@
 <?php
 
-namespace Doinc\Wallet\Interfaces;
+namespace Doinc\Wallet\Tests\Samples;
 
-/**
- * @property string $cost
- * @property array $metadata
- */
-interface Product extends Wallet
+use Doinc\Wallet\Interfaces\Customer;
+use Doinc\Wallet\Interfaces\Product;
+use Doinc\Wallet\Traits\HasWallet;
+use Illuminate\Database\Eloquent\Model;
+
+class SampleProduct extends Model implements Product
 {
+    use HasWallet;
+
     /**
      * Check whether the provided customer has enough funds to buy the given quantity of the current product
      *
@@ -16,7 +19,10 @@ interface Product extends Wallet
      * @param bool $force Whether the buyer's balance can go below 0
      * @return bool
      */
-    public function canBuy(Customer $customer, int $quantity = 1, bool $force = false): bool;
+    public function canBuy(Customer $customer, int $quantity = 1, bool $force = false): bool
+    {
+        return true;
+    }
 
     /**
      * Defines how much the product costs
@@ -25,7 +31,10 @@ interface Product extends Wallet
      * @param Customer $customer Product buyer, useful to personalize the price per user
      * @return string
      */
-    public function getCostAttribute(Customer $customer): string;
+    public function getCostAttribute(Customer $customer): string
+    {
+        return "1000";
+    }
 
     /**
      * Metadata attributes assigned to the product, this can be used to identify one or more products while
@@ -33,5 +42,8 @@ interface Product extends Wallet
      *
      * @return array
      */
-    public function getMetadataAttribute(): array;
+    public function getMetadataAttribute(): array
+    {
+        return [];
+    }
 }

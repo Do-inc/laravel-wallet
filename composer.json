@@ -46,8 +46,8 @@
     },
     "scripts": {
         "analyse": "vendor/bin/phpstan analyse",
-        "test": "vendor/bin/pest",
-        "test-coverage": "vendor/bin/pest --coverage"
+        "test": "rm -f ./database/database.sqlite && touch ./database/database.sqlite && vendor/bin/pest",
+        "test-coverage": "rm -f ./database/database.sqlite && touch ./database/database.sqlite && vendor/bin/pest --coverage"
     },
     "config": {
         "sort-packages": true,
@@ -59,10 +59,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Doinc\\Wallet\\LaravelWalletServiceProvider"
+              "WalletServiceProvider"
             ],
             "aliases": {
-                "LaravelWallet": "Doinc\\Wallet\\Facades\\LaravelWallet"
+                "Wallet": "Doinc\\Wallet\\Facades\\Wallet"
             }
         }
     },

@@ -2,13 +2,14 @@
 
 namespace Doinc\Wallet\Traits;
 
-use Doinc\Wallet\Enums\TransferStatus;
+use Doinc\Wallet\Enums\TransactionType;
 use Doinc\Wallet\Exceptions\CannotBuyProduct;
-use Doinc\Wallet\Interfaces\Discount;
+use Doinc\Wallet\Exceptions\CannotPay;
 use Doinc\Wallet\Interfaces\Product;
-use Doinc\Wallet\Interfaces\Taxable;
-use Doinc\Wallet\Models\Transfer;
+use Doinc\Wallet\Models\Transaction;
+use Doinc\Wallet\Observers\TransactionObserver;
 use Doinc\Wallet\TransactionBuilder;
+use Throwable;
 
 trait CanPay
 {
@@ -18,52 +19,28 @@ trait CanPay
      * Buy the provided product for free
      *
      * @param Product $product Product to buy
-     * @return Transfer
+     * @return Transaction
+     * @throws CannotBuyProduct
+     * @throws Throwable
      */
-    public function payFree(Product $product): Transfer
+    public function payFree(Product $product): Transaction
     {
-        if (! $product->canBuy($this)) {
+        if(!$product->canBuy($this)) {
             throw new CannotBuyProduct();
         }
 
-        $transfer = new Transfer();
-        $transfer->from_type = $this->getMorphClass();
-        $transfer->from_id = $this->getKey();
-        $transfer->to_type = $product->getMorphClass();
-        $transfer->to_id = $product->getKey();
-        $transfer->status = TransferStatus::PAID;
-        $transfer->status_last = TransferStatus::PAID;
-
-        if ($product instanceof Taxable) {
-            $transfer->fee = $product->getFeePercent();
-        }
-        if ($product instanceof Discount) {
-            $transfer->discount = $product->getDiscount($this);
-        }
-
-        $deposit_transaction = TransactionBuilder::init()
-            ->withWallet($product)
-            ->isDeposit()
-            ->withMetadata([
-                ...$product->metadata,
-                "free" => true,
-            ])
+        $transaction = TransactionBuilder::init()
+            ->from($this)
+            ->to($product)
+            ->withAmount("0")
+            ->isConfirmed()
+            ->withType(TransactionType::PAYMENT)
+            ->syncWithProductMetadata()
             ->get();
-        $withdraw_transaction = TransactionBuilder::init()
-            ->withWallet($this)
-            ->isWithdraw()
-            ->withMetadata([
-                ...$product->metadata,
-                "free" => true,
-            ])
-            ->get();
-        $deposit_transaction->save();
-        $withdraw_transaction->save();
+        $transaction->saveOrFail();
+        TransactionObserver::applyTransactionOnTheFly($transaction, $this);
 
-        $transfer->deposit_id = $deposit_transaction->getKey();
-        $transfer->withdraw_id = $withdraw_transaction->getKey();
-
-        return current($this->payFreeCart(app(Cart::class)->withItem($product)));
+        return $transaction;
     }
 
     /**
@@ -71,69 +48,127 @@ trait CanPay
      * object
      *
      * @param Product $product Product to buy
-     * @return Transfer|null
+     * @return Transaction|null
      */
-    public function safePay(Product $product): ?Transfer
+    public function safePay(Product $product): ?Transaction
     {
-        return current($this->safePayCart(app(Cart::class)->withItem($product), $force)) ?: null;
+        try {
+            return $this->pay($product);
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     /**
      * Buy the provided product
      *
      * @param Product $product Product to buy
-     * @return Transfer
+     * @param bool $confirmed Whether the transaction was confirmed or not, defaults to confirmed
+     * @return Transaction
+     * @throws CannotBuyProduct
+     * @throws CannotPay
+     * @throws Throwable
      */
-    public function pay(Product $product): Transfer
+    public function pay(Product $product, bool $confirmed = true): Transaction
     {
-        return current($this->payCart(app(Cart::class)->withItem($product), $force));
+        if (!$product->canBuy($this)) {
+            throw new CannotBuyProduct();
+        }
+        if(!$this->canWithdraw($product->getCostAttribute($this), true)) {
+            throw new CannotPay();
+        }
+
+        $transaction = TransactionBuilder::init()
+            ->from($this)
+            ->to($product)
+            ->withAmount("0")
+            ->isConfirmed($confirmed)
+            ->withType(TransactionType::PAYMENT)
+            ->syncWithProductMetadata()
+            ->get(compute_cost_from_product: true);
+        $transaction->saveOrFail();
+        TransactionObserver::applyTransactionOnTheFly($transaction, $this);
+
+        return $transaction;
     }
 
     /**
      * Buy the provided product without caring if the balance is 0 or negative
      *
      * @param Product $product Product to buy
-     * @return Transfer
+     * @return Transaction
+     * @throws CannotBuyProduct
+     * @throws CannotPay
+     * @throws Throwable
      */
-    public function forcePay(Product $product): Transfer
+    public function forcePay(Product $product): Transaction
     {
-        return current($this->forcePayCart(app(Cart::class)->withItem($product)));
+        return $this->pay($product);
     }
 
     /**
      * Refund the provided product without firing any exception, if exception occurs silence them and returns false
      *
      * @param Product $product Product to refund
-     * @return bool
+     * @return Transaction|null
      */
-    public function safeRefund(Product $product): bool
+    public function safeRefund(Product $product): ?Transaction
     {
-        return $this->safeRefundCart(app(Cart::class)->withItem($product), $force, $gifts);
+        try {
+            return $this->refund($product);
+        }
+        catch (Throwable) {
+            return null;
+        }
     }
 
     /**
      * Refund the provided product
      *
      * @param Product $product Product to buy
-     * @return bool
+     * @param bool $confirmed Whether the transaction was confirmed or not, defaults to confirmed
+     * @return Transaction
+     * @throws Throwable
      */
-    public function refund(Product $product): bool
+    public function refund(Product $product, bool $confirmed = true): Transaction
     {
-        return $this->refundCart(app(Cart::class)->withItem($product), $force, $gifts);
+        $transaction = TransactionBuilder::init()
+            ->from($product)
+            ->to($this)
+            ->isConfirmed($confirmed)
+            ->withType(TransactionType::REFUND)
+            ->syncWithProductMetadata()
+            ->get(compute_cost_from_product: true);
+        $transaction->saveOrFail();
+        TransactionObserver::applyTransactionOnTheFly($transaction, receiver: $this);
+
+        return $transaction;
+    }
+
+    /**
+     * Refund the provided product
+     *
+     * @param Product $product Product to buy
+     * @return Transaction
+     * @throws Throwable
+     */
+    public function forceRefund(Product $product): Transaction
+    {
+        return $this->refund($product);
     }
 
     /**
      * Get the payment for the provided product if it exists
      *
      * @param Product $product Product to look for
-     * @return Transfer|null
+     * @return Transaction|null
      */
-    public function getPayment(Product $product): ?Transfer
+    public function getPayment(Product $product): ?Transaction
     {
-        return $this->transfers()
+        return $this->transactions()
             ->where("to_type", $product->getMorphClass())
             ->where("to_id", $product->getKey())
-            ->where("status", TransferStatus::PAID)
+            ->where("status", TransactionType::PAYMENT)
             ->orderByDesc("id")
             ->first();
     }
@@ -146,6 +181,6 @@ trait CanPay
      */
     public function paid(Product $product): bool
     {
-        return ! is_null($this->getPayment($product));
+        return !is_null($this->getPayment($product));
     }
 }

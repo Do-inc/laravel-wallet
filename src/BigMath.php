@@ -8,7 +8,15 @@ use Doinc\Wallet\Enums\BigNumberComparisonStatus;
 
 class BigMath
 {
-    protected const SCALE = 256;
+    /**
+     * Returns the decimal scale, alias the number of position after the comma that should be kept
+     *
+     * @return int
+     */
+    protected static function scale(): int
+    {
+        return config("wallet.precision.global");
+    }
 
     /**
      * Sum two numbers and returns the raw result
@@ -21,7 +29,7 @@ class BigMath
     {
         return (string)BigDecimal::of($first)
             ->plus(BigDecimal::of($second))
-            ->toScale(self::SCALE, RoundingMode::DOWN);
+            ->toScale(self::scale(), RoundingMode::DOWN);
     }
 
     /**
@@ -35,7 +43,7 @@ class BigMath
     {
         return (string)BigDecimal::of($first)
             ->minus(BigDecimal::of($second))
-            ->toScale(self::SCALE, RoundingMode::DOWN);
+            ->toScale(self::scale(), RoundingMode::DOWN);
     }
 
     /**
@@ -48,7 +56,7 @@ class BigMath
     public static function div(int|float|string $first, int|float|string $second): string
     {
         return (string)BigDecimal::of($first)
-            ->dividedBy(BigDecimal::of($second), self::SCALE, RoundingMode::DOWN);
+            ->dividedBy(BigDecimal::of($second), self::scale(), RoundingMode::DOWN);
     }
 
     /**
@@ -62,7 +70,7 @@ class BigMath
     {
         return (string)BigDecimal::of($first)
             ->multipliedBy(BigDecimal::of($second))
-            ->toScale(self::SCALE, RoundingMode::DOWN);
+            ->toScale(self::scale(), RoundingMode::DOWN);
     }
 
     /**
@@ -76,7 +84,7 @@ class BigMath
     {
         return (string)BigDecimal::of($first)
             ->power($second)
-            ->toScale(self::SCALE, RoundingMode::DOWN);
+            ->toScale(self::scale(), RoundingMode::DOWN);
     }
 
     /**
@@ -135,7 +143,8 @@ class BigMath
      */
     public static function abs(int|float|string $number): string
     {
-        return (string)BigDecimal::of($number)->abs();
+        return (string)BigDecimal::of($number)->abs()
+            ->toScale(self::scale(), RoundingMode::DOWN);
     }
 
     /**
@@ -146,7 +155,8 @@ class BigMath
      */
     public static function negative(int|float|string $number): string
     {
-        return (string)BigDecimal::of($number)->negated();
+        return (string)BigDecimal::of($number)->negated()
+            ->toScale(self::scale(), RoundingMode::DOWN);
     }
 
     /**

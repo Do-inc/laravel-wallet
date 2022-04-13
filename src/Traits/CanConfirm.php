@@ -22,6 +22,7 @@ trait CanConfirm
      * @throws InvalidWalletModelProvided
      * @throws InvalidWalletOwner
      * @throws TransactionAlreadyConfirmed
+     * @throws Throwable
      */
     public function confirm(Transaction $transaction): bool
     {
@@ -40,9 +41,10 @@ trait CanConfirm
 
         TransactionConfirmed::dispatch($wallet, $transaction);
 
-        return $transaction->update([
-            'confirmed' => true,
-        ]);
+        $transaction->confirmed = true;
+        $transaction->confirmed_at = now();
+
+        return $transaction->saveOrFail();
     }
 
     /**
@@ -67,6 +69,7 @@ trait CanConfirm
      * @return bool
      * @throws InvalidWalletModelProvided
      * @throws InvalidWalletOwner
+     * @throws Throwable
      */
     public function resetConfirm(Transaction $transaction): bool
     {
@@ -79,9 +82,10 @@ trait CanConfirm
 
         TransactionConfirmationReset::dispatch($wallet, $transaction);
 
-        return $transaction->update([
-            'confirmed' => false,
-        ]);
+        $transaction->confirmed = false;
+        $transaction->confirmed_at = null;
+
+        return $transaction->saveOrFail();
     }
 
     /**
@@ -131,7 +135,10 @@ trait CanConfirm
      */
     protected function checkWalletOwner(Wallet $wallet, Transaction $transaction)
     {
-        if ($wallet->getKey() !== $transaction->wallet_id) {
+        if (
+            ($wallet->getMorphClass() !== $transaction->from_type || $wallet->getKey() !== $transaction->from_id) &&
+            ($wallet->getMorphClass() !== $transaction->to_type || $wallet->getKey() !== $transaction->to_id)
+        ) {
             throw new InvalidWalletOwner();
         }
     }
