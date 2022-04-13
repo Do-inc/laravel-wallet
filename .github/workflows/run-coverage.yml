@@ -47,12 +47,12 @@ jobs:
         run: |
           rm -f ./database/database.sqlite
           touch ./database/database.sqlite
-          coverage=$(./vendor/bin/pest --coverage | grep 'Cov:' | tr -d '[:blank:]' | tr -d 'Cov:' | tr -d '%')
-          echo "COVERAGE=$coverage" >> $GITHUB_ENV
+          COVERAGE=$(./vendor/bin/pest --coverage | grep 'Cov:' | tr -d '[:blank:]' | tr -d 'Cov:' | tr -d '%')
+          echo "COVERAGE=${COVERAGE}" >> $GITHUB_ENV
 
-          if [[ $(echo "$coverage < 40" | bc) -eq 1 ]]; then
+          if [[ $(echo "${COVERAGE} < 40" | bc) -eq 1 ]]; then
             echo "BADGE_COLOR=red" >> $GITHUB_ENV
-          elif [[ $(echo "$coverage < 80" | bc) -eq 1 ]]; then
+          elif [[ $(echo "${COVERAGE} < 80" | bc) -eq 1 ]]; then
             echo "BADGE_COLOR=yellow" >> $GITHUB_ENV
           else
             echo "BADGE_COLOR=green" >> $GITHUB_ENV
