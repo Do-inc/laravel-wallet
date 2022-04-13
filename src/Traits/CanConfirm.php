@@ -66,7 +66,7 @@ trait CanConfirm
      */
     public function resetConfirm(Transaction $transaction): bool
     {
-        if (!$transaction->confirmed) {
+        if (! $transaction->confirmed) {
             return true;
         }
 
@@ -105,7 +105,7 @@ trait CanConfirm
      */
     protected function getWallet(object $wallet): Wallet
     {
-        if (!$wallet instanceof Wallet) {
+        if (! $wallet instanceof Wallet) {
             throw new InvalidWalletModelProvided();
         }
 
