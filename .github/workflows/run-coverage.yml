@@ -48,7 +48,9 @@ jobs:
           echo "::echo::on"
           rm -f ./database/database.sqlite
           touch ./database/database.sqlite
-          COVERAGE=$(./vendor/bin/pest --coverage --colors=never | grep 'Cov:' | tr -d '[:blank:]' | tr -d 'Cov:' | tr -d '%')
+          echo $(which grep)
+          echo $(which tr)
+          COVERAGE=$(vendor/bin/pest --coverage --colors=never | grep 'Cov:' | tr -d '[:blank:]' | tr -d 'Cov:' | tr -d '%')
           echo "test"
           echo $COVERAGE
           echo "COVERAGE=${COVERAGE}" >> $GITHUB_ENV
