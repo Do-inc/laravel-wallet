@@ -1,7 +1,7 @@
 
 [![Laravel Wallet - by Do Group LLC](assets/default.png)](https://do-inc.co)
 
-[![Tests](https://github.com/Do-inc/laravel-wallet/actions/workflows/run-tests.yml/badge.svg)](https://github.com/Do-inc/laravel-wallet/actions/workflows/run-tests.yml)
+[![Tests](https://github.com/Do-inc/laravel-wallet/actions/workflows/tests.yml/badge.svg)](https://github.com/Do-inc/laravel-wallet/actions/workflows/tests.yml)
 [![Check & fix styling](https://github.com/Do-inc/laravel-wallet/actions/workflows/php-cs-fixer.yml/badge.svg)](https://github.com/Do-inc/laravel-wallet/actions/workflows/php-cs-fixer.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/ebalo55/45584b0dc38ce224d546245721105bdf/raw/laravel_wallet_package-main.json)](https://github.com/Do-inc/laravel-wallet/actions/workflows/run-coverage.yml)
 
