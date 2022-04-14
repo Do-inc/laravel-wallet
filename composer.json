@@ -59,11 +59,8 @@
     "extra": {
         "laravel": {
             "providers": [
-              "WalletServiceProvider"
-            ],
-            "aliases": {
-                "Wallet": "Doinc\\Wallet\\Facades\\Wallet"
-            }
+                "Doinc\\Wallet\\WalletServiceProvider"
+            ]
         }
     },
     "minimum-stability": "dev",
