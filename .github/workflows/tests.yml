@@ -27,7 +27,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer install --no-interaction --no-update --prefer-dist
+          composer install --no-interaction --prefer-dist
 
       - name: Execute tests
         run: |
