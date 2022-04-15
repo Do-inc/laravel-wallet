@@ -33,7 +33,6 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->index(['from_wallet_id', 'to_wallet_id'], 'i_from_wallet');
             $table->index(['from_type', 'from_id'], 'iFrom_type_id');
             $table->index(['from_type', 'from_id', 'type'], 'iFrom_type');
             $table->index(['from_type', 'from_id', 'confirmed'], 'iFrom_confirmed');
