@@ -18,7 +18,7 @@ return new class extends Migration
                 $table->morphs("holder");
             }
 
-            $table->string("name");
+            $table->string("name")->default("default");
             $table->longText("metadata")->nullable();
             $table->string("balance")->default("0");
             $table->unsignedSmallInteger("precision")->default(config("wallet.precision.global"));

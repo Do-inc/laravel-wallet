@@ -97,22 +97,6 @@ trait CanConfirm
     }
 
     /**
-     * Get the wallet instance from a provided object
-     *
-     * @param object $wallet Probable wallet instance
-     * @return Wallet
-     * @throws InvalidWalletModelProvided
-     */
-    protected function getWallet(object $wallet): Wallet
-    {
-        if (! $wallet instanceof Wallet) {
-            throw new InvalidWalletModelProvided();
-        }
-
-        return $wallet;
-    }
-
-    /**
      * Checks if the provided wallet owns the given transaction, if it does not throw
      *
      * @param Wallet $wallet Probable wallet owner

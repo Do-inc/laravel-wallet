@@ -6,6 +6,7 @@ use Doinc\Wallet\BigMath;
 use Doinc\Wallet\Enums\TransactionType;
 use Doinc\Wallet\Models\Transaction;
 use Doinc\Wallet\Models\Wallet;
+use Doinc\Wallet\Models\Wallet as WalletModel;
 
 class TransactionObserver
 {
@@ -27,26 +28,43 @@ class TransactionObserver
             switch ($transaction->type) {
                 case TransactionType::DEPOSIT:
                 case TransactionType::REFUND:
-                    $to->balance = BigMath::add($to->balance, $due);
+                    if (self::isWallet($to)) {
+                        $to->balance = BigMath::add($to->balance, $due);
+                    } else {
+                        $to->wallet->balance = BigMath::add($to->wallet->balance, $due);
+                    }
 
                     break;
                 case TransactionType::WITHDRAW:
                 case TransactionType::PAYMENT:
-                    $from->balance = BigMath::sub($from->balance, $due);
+                    if (self::isWallet($from)) {
+                        $from->balance = BigMath::sub($from->balance, $due);
+                    } else {
+                        $from->wallet->balance = BigMath::sub($from->wallet->balance, $due);
+                    }
 
                     break;
                 case TransactionType::TRANSFER:
-                    $from->balance = BigMath::sub($from->balance, $due);
-                    $to->balance = BigMath::add($to->balance, $due);
+                    if (self::isWallet($to)) {
+                        $from->balance = BigMath::sub($from->balance, $due);
+                    } else {
+                        $from->wallet->balance = BigMath::sub($from->wallet->balance, $due);
+                    }
+
+                    if (self::isWallet($to)) {
+                        $to->balance = BigMath::add($to->balance, $due);
+                    } else {
+                        $to->wallet->balance = BigMath::add($to->wallet->balance, $due);
+                    }
 
                     break;
             }
 
             // save modification
-            if (! is_null($from)) {
+            if (!is_null($from)) {
                 $from->save();
             }
-            if (! is_null($to)) {
+            if (!is_null($to)) {
                 $to->save();
             }
         }
@@ -67,33 +85,58 @@ class TransactionObserver
             $due = BigMath::sub(BigMath::add($transaction->amount, $transaction->fee), $transaction->discount);
             switch ($transaction->type) {
                 case TransactionType::DEPOSIT:
-                    $receiver->balance = BigMath::add($receiver->balance, $due);
+                    if (self::isWallet($receiver)) {
+                        $receiver->balance = BigMath::add($receiver->balance, $due);
+                    } else {
+                        $receiver->wallet->balance = BigMath::add($receiver->wallet->balance, $due);
+                    }
 
                     break;
                 case TransactionType::REFUND:
-                    if (! $transaction->refunded) {
+                    if (!$transaction->refunded) {
                         // the amount to refund is always only the paid amount without the fee
                         $due = BigMath::sub($transaction->amount, $transaction->discount);
-                        $receiver->balance = BigMath::add($receiver->balance, $due);
+                        if (self::isWallet($receiver)) {
+                            $receiver->balance = BigMath::add($receiver->balance, $due);
+                        } else {
+                            $receiver->wallet->balance = BigMath::add($receiver->wallet->balance, $due);
+                        }
                     }
 
                     break;
                 case TransactionType::WITHDRAW:
                 case TransactionType::PAYMENT:
-                    $sender->balance = BigMath::sub($sender->balance, $due);
+                    if (self::isWallet($sender)) {
+                        $sender->balance = BigMath::sub($sender->balance, $due);
+                    } else {
+                        $sender->wallet->balance = BigMath::sub($sender->wallet->balance, $due);
+                    }
 
                     break;
                 case TransactionType::TRANSFER:
-                    if (! is_null($sender) && $transaction->from_id === $sender->id) {
-                        $sender->balance = BigMath::sub($sender->balance, $due);
+                    if (!is_null($sender) && $transaction->from_id === $sender->id) {
+                        if (self::isWallet($sender)) {
+                            $sender->balance = BigMath::sub($sender->balance, $due);
+                        } else {
+                            $sender->wallet->balance = BigMath::sub($sender->wallet->balance, $due);
+                        }
                     }
 
-                    if (! is_null($receiver) && $transaction->to_id === $receiver->id) {
-                        $receiver->balance = BigMath::add($receiver->balance, $due);
+                    if (!is_null($receiver) && $transaction->to_id === $receiver->id) {
+                        if (self::isWallet($sender)) {
+                            $receiver->balance = BigMath::add($receiver->balance, $due);
+                        } else {
+                            $receiver->wallet->balance = BigMath::add($receiver->wallet->balance, $due);
+                        }
                     }
 
                     break;
             }
         }
+    }
+
+    protected static function isWallet(\Doinc\Wallet\Interfaces\Wallet $wallet): bool
+    {
+        return $wallet instanceof WalletModel;
     }
 }

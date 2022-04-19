@@ -13,6 +13,7 @@ use Doinc\Wallet\Models\Wallet as WalletModel;
 use Doinc\Wallet\Observers\TransactionObserver;
 use Doinc\Wallet\TransactionBuilder;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Throwable;
 
@@ -30,14 +31,20 @@ trait HasWallet
     public function deposit(int|float|string $amount, array $metadata = [], bool $confirmed = true): Transaction
     {
         $transaction = TransactionBuilder::init()
-            ->to($this)
+            ->to($this->getWallet($this))
             ->withAmount($amount)
             ->withMetadata($metadata)
             ->withType(TransactionType::DEPOSIT)
             ->isConfirmed($confirmed)
             ->get();
         $transaction->saveOrFail();
-        TransactionObserver::applyTransactionOnTheFly($transaction, receiver: $this);
+
+        if($this->isWallet($this)) {
+            TransactionObserver::applyTransactionOnTheFly($transaction, receiver: $this);
+        }
+        else {
+            TransactionObserver::applyTransactionOnTheFly($transaction, receiver: $this->wallet);
+        }
 
         return $transaction;
     }
@@ -59,14 +66,20 @@ trait HasWallet
         }
 
         $transaction = TransactionBuilder::init()
-            ->from($this)
+            ->from($this->getWallet($this))
             ->withAmount($amount)
             ->withMetadata($metadata)
             ->withType(TransactionType::WITHDRAW)
             ->isConfirmed($confirmed)
             ->get();
         $transaction->saveOrFail();
-        TransactionObserver::applyTransactionOnTheFly($transaction, $this);
+
+        if($this->isWallet($this)) {
+            TransactionObserver::applyTransactionOnTheFly($transaction, $this);
+        }
+        else {
+            TransactionObserver::applyTransactionOnTheFly($transaction, $this->wallet);
+        }
 
         return $transaction;
     }
@@ -110,15 +123,29 @@ trait HasWallet
         }
 
         $transaction = TransactionBuilder::init()
-            ->from($this)
-            ->to($recipient)
+            ->from($this->getWallet($this))
+            ->to($this->getWallet($recipient))
             ->withAmount($amount)
             ->withMetadata($metadata)
             ->withType(TransactionType::TRANSFER)
             ->isConfirmed($confirmed)
             ->get();
         $transaction->saveOrFail();
-        TransactionObserver::applyTransactionOnTheFly($transaction, $this, $recipient);
+
+        $sender_is_wallet = $this->isWallet($this);
+        $receiver_is_wallet = $this->isWallet($this);
+        if($sender_is_wallet && $receiver_is_wallet) {
+            TransactionObserver::applyTransactionOnTheFly($transaction, $this, $recipient);
+        }
+        elseif(!$sender_is_wallet && $receiver_is_wallet) {
+            TransactionObserver::applyTransactionOnTheFly($transaction, $this->wallet, $recipient);
+        }
+        elseif($sender_is_wallet && !$receiver_is_wallet) {
+            TransactionObserver::applyTransactionOnTheFly($transaction, $this, $recipient->wallet);
+        }
+        else {
+            TransactionObserver::applyTransactionOnTheFly($transaction, $this->wallet, $recipient->wallet);
+        }
 
         return $transaction;
     }
@@ -167,11 +194,13 @@ trait HasWallet
      * @param int|float|string $amount
      * @param bool $allow_zero
      * @return bool
+     * @throws InvalidWalletModelProvided
      */
     public function canWithdraw(int|float|string $amount, bool $allow_zero = false): bool
     {
-        return BigMath::higherThan($this->balance, $amount) || (
-            $allow_zero && BigMath::equal($this->balance, $amount)
+        $wallet = $this->getWallet($this);
+        return BigMath::higherThan($wallet->balance, $amount) || (
+            $allow_zero && BigMath::equal($wallet->balance, $amount)
         );
     }
 
@@ -182,14 +211,15 @@ trait HasWallet
      */
     public function transactions(): Builder
     {
+        $wallet = $this->getWallet($this);
         return Transaction::query()
-            ->where(function (Builder $builder) {
-                $builder->where("from_type", $this->getMorphClass())
-                    ->where("from_id", $this->getKey());
+            ->where(function (Builder $builder) use ($wallet) {
+                $builder->where("from_type", WalletModel::class)
+                    ->where("from_id", $wallet->getKey());
             })
-            ->orWhere(function (Builder $builder) {
-                $builder->where("to_type", $this->getMorphClass())
-                    ->where("to_id", $this->getKey());
+            ->orWhere(function (Builder $builder) use ($wallet) {
+                $builder->where("to_type", WalletModel::class)
+                    ->where("to_id", $wallet->getKey());
             });
     }
 
@@ -200,7 +230,7 @@ trait HasWallet
      */
     public function sentTransactions(): MorphMany
     {
-        return $this->morphMany(Transaction::class, "from");
+        return $this->getWallet($this)->morphMany(Transaction::class, "from");
     }
 
     /**
@@ -210,6 +240,16 @@ trait HasWallet
      */
     public function receivedTransactions(): MorphMany
     {
-        return $this->morphMany(Transaction::class, "to");
+        return $this->getWallet($this)->morphMany(Transaction::class, "to");
+    }
+
+    /**
+     * Get the associated wallet
+     *
+     * @return WalletModel|HasOne
+     */
+    public function wallet(): WalletModel|HasOne
+    {
+        return $this->isWallet($this) ? $this : $this->hasOne(WalletModel::class);
     }
 }
