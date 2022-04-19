@@ -61,10 +61,10 @@ class TransactionObserver
             }
 
             // save modification
-            if (!is_null($from)) {
+            if (! is_null($from)) {
                 $from->save();
             }
-            if (!is_null($to)) {
+            if (! is_null($to)) {
                 $to->save();
             }
         }
@@ -93,7 +93,7 @@ class TransactionObserver
 
                     break;
                 case TransactionType::REFUND:
-                    if (!$transaction->refunded) {
+                    if (! $transaction->refunded) {
                         // the amount to refund is always only the paid amount without the fee
                         $due = BigMath::sub($transaction->amount, $transaction->discount);
                         if (self::isWallet($receiver)) {
@@ -114,7 +114,7 @@ class TransactionObserver
 
                     break;
                 case TransactionType::TRANSFER:
-                    if (!is_null($sender) && $transaction->from_id === $sender->id) {
+                    if (! is_null($sender) && $transaction->from_id === $sender->id) {
                         if (self::isWallet($sender)) {
                             $sender->balance = BigMath::sub($sender->balance, $due);
                         } else {
@@ -122,7 +122,7 @@ class TransactionObserver
                         }
                     }
 
-                    if (!is_null($receiver) && $transaction->to_id === $receiver->id) {
+                    if (! is_null($receiver) && $transaction->to_id === $receiver->id) {
                         if (self::isWallet($sender)) {
                             $receiver->balance = BigMath::add($receiver->balance, $due);
                         } else {

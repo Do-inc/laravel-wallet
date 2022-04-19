@@ -2,6 +2,14 @@
 
 All notable changes to `laravel-wallet` will be documented in this file.
 
+## v1.0.3 - 2022-04-19
+
+## What's Changed
+
+- Bump schneegans/dynamic-badges-action from 1.2.0 to 1.3.0 by @dependabot in https://github.com/Do-inc/laravel-wallet/pull/2
+
+**Full Changelog**: https://github.com/Do-inc/laravel-wallet/compare/v1.0.2...v1.0.3
+
 ## v1.0.2 - 2022-04-15
 
 **Full Changelog**: https://github.com/Do-inc/laravel-wallet/compare/v1.0.1...v1.0.2

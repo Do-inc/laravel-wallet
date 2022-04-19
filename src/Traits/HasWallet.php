@@ -41,10 +41,9 @@ trait HasWallet
             ->get();
         $transaction->saveOrFail();
 
-        if($this->isWallet($this)) {
+        if ($this->isWallet($this)) {
             TransactionObserver::applyTransactionOnTheFly($transaction, receiver: $this);
-        }
-        else {
+        } else {
             TransactionObserver::applyTransactionOnTheFly($transaction, receiver: $this->wallet);
         }
 
@@ -76,10 +75,9 @@ trait HasWallet
             ->get();
         $transaction->saveOrFail();
 
-        if($this->isWallet($this)) {
+        if ($this->isWallet($this)) {
             TransactionObserver::applyTransactionOnTheFly($transaction, $this);
-        }
-        else {
+        } else {
             TransactionObserver::applyTransactionOnTheFly($transaction, $this->wallet);
         }
 
@@ -136,16 +134,13 @@ trait HasWallet
 
         $sender_is_wallet = $this->isWallet($this);
         $receiver_is_wallet = $this->isWallet($this);
-        if($sender_is_wallet && $receiver_is_wallet) {
+        if ($sender_is_wallet && $receiver_is_wallet) {
             TransactionObserver::applyTransactionOnTheFly($transaction, $this, $recipient);
-        }
-        elseif(!$sender_is_wallet && $receiver_is_wallet) {
+        } elseif (! $sender_is_wallet && $receiver_is_wallet) {
             TransactionObserver::applyTransactionOnTheFly($transaction, $this->wallet, $recipient);
-        }
-        elseif($sender_is_wallet && !$receiver_is_wallet) {
+        } elseif ($sender_is_wallet && ! $receiver_is_wallet) {
             TransactionObserver::applyTransactionOnTheFly($transaction, $this, $recipient->wallet);
-        }
-        else {
+        } else {
             TransactionObserver::applyTransactionOnTheFly($transaction, $this->wallet, $recipient->wallet);
         }
 
@@ -201,6 +196,7 @@ trait HasWallet
     public function canWithdraw(int|float|string $amount, bool $allow_zero = false): bool
     {
         $wallet = $this->getWallet($this);
+
         return BigMath::higherThan($wallet->balance, $amount) || (
             $allow_zero && BigMath::equal($wallet->balance, $amount)
         );
@@ -214,6 +210,7 @@ trait HasWallet
     public function transactions(): Builder
     {
         $wallet = $this->getWallet($this);
+
         return Transaction::query()
             ->where(function (Builder $builder) use ($wallet) {
                 $builder->where("from_type", WalletModel::class)
