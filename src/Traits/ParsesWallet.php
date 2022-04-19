@@ -21,6 +21,7 @@ trait ParsesWallet
         if ($wallet instanceof WalletModel) {
             return $wallet;
         }
+
         try {
             return $wallet->wallet;
         } catch (Throwable) {
