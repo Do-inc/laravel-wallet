@@ -19,6 +19,8 @@ use Throwable;
 
 trait HasWallet
 {
+    use ParsesWallet;
+
     /**
      * Top up the wallet with the provided amount
      *

@@ -8,7 +8,6 @@ use Doinc\Wallet\Interfaces\Customer;
 use Doinc\Wallet\Interfaces\Wallet as IWallet;
 use Doinc\Wallet\Traits\CanConfirm;
 use Doinc\Wallet\Traits\CanPay;
-use Doinc\Wallet\Traits\ParsesWallet;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -29,7 +28,6 @@ use Illuminate\Support\Collection;
  */
 class Wallet extends Model implements Customer, Confirmable
 {
-    use ParsesWallet;
     use CanConfirm;
     use CanPay;
     use HasFactory;
