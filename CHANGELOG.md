@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-wallet` will be documented in this file.
 
+## v1.0.4 - 2022-04-20
+
+**Full Changelog**: https://github.com/Do-inc/laravel-wallet/compare/v1.0.3...v1.0.4
+
 ## v1.0.3 - 2022-04-19
 
 ## What's Changed
