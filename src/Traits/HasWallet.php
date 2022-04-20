@@ -13,8 +13,8 @@ use Doinc\Wallet\Models\Wallet as WalletModel;
 use Doinc\Wallet\Observers\TransactionObserver;
 use Doinc\Wallet\TransactionBuilder;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Throwable;
 
 trait HasWallet
@@ -242,10 +242,10 @@ trait HasWallet
     /**
      * Get the associated wallet
      *
-     * @return WalletModel|HasOne
+     * @return WalletModel|MorphOne
      */
-    public function wallet(): WalletModel|HasOne
+    public function wallet(): WalletModel|MorphOne
     {
-        return $this->isWallet($this) ? $this : $this->hasOne(WalletModel::class);
+        return $this->isWallet($this) ? $this : $this->morphOne(WalletModel::class, "holder");
     }
 }
