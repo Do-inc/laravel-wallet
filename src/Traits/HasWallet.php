@@ -118,9 +118,6 @@ trait HasWallet
         if (! $this->canWithdraw($amount, true)) {
             throw new CannotTransfer();
         }
-        if (! $recipient instanceof WalletModel) {
-            throw new InvalidWalletModelProvided();
-        }
 
         $transaction = TransactionBuilder::init()
             ->from($this->getWallet($this))
