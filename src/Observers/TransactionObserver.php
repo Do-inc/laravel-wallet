@@ -15,8 +15,9 @@ class TransactionObserver
      *
      * @param Transaction $transaction
      * @return void
+     * @throws \Throwable
      */
-    public function saved(Transaction $transaction)
+    public function saved(Transaction $transaction): void
     {
         if ($transaction->confirmed) {
             /** @var Wallet $from */
@@ -62,10 +63,10 @@ class TransactionObserver
 
             // save modification
             if (! is_null($from)) {
-                $from->save();
+                $from->saveOrFail();
             }
             if (! is_null($to)) {
-                $to->save();
+                $to->saveOrFail();
             }
         }
     }
@@ -75,11 +76,11 @@ class TransactionObserver
      * This method avoids the need to refresh a wallet instance as soon as a transaction is executed
      *
      * @param Transaction $transaction
-     * @param Wallet|null $sender
-     * @param Wallet|null $receiver
+     * @param object|null $sender
+     * @param object|null $receiver
      * @return void
      */
-    public static function applyTransactionOnTheFly(Transaction $transaction, ?Wallet &$sender = null, ?Wallet &$receiver = null)
+    public static function applyTransactionOnTheFly(Transaction $transaction, ?object &$sender = null, ?object &$receiver = null): void
     {
         if ($transaction->confirmed) {
             $due = BigMath::sub(BigMath::add($transaction->amount, $transaction->fee), $transaction->discount);
@@ -135,8 +136,8 @@ class TransactionObserver
         }
     }
 
-    protected static function isWallet(\Doinc\Wallet\Interfaces\Wallet $wallet): bool
+    protected static function isWallet(?object $wallet): bool
     {
-        return $wallet instanceof WalletModel;
+        return !is_null($wallet) && $wallet instanceof WalletModel;
     }
 }

@@ -223,6 +223,7 @@ trait HasWallet
      * Retrieve all the sent transaction
      *
      * @return MorphMany
+     * @throws InvalidWalletModelProvided
      */
     public function sentTransactions(): MorphMany
     {
@@ -233,6 +234,7 @@ trait HasWallet
      * Retrieve all the received transaction
      *
      * @return MorphMany
+     * @throws InvalidWalletModelProvided
      */
     public function receivedTransactions(): MorphMany
     {

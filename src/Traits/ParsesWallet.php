@@ -3,8 +3,8 @@
 namespace Doinc\Wallet\Traits;
 
 use Doinc\Wallet\Exceptions\InvalidWalletModelProvided;
-use Doinc\Wallet\Interfaces\Wallet;
 use Doinc\Wallet\Models\Wallet as WalletModel;
+use Exception;
 use Throwable;
 
 trait ParsesWallet
@@ -12,25 +12,28 @@ trait ParsesWallet
     /**
      * Get the wallet instance from a provided object
      *
-     * @param object $wallet
+     * @param object|null $wallet
      * @return WalletModel
      * @throws InvalidWalletModelProvided
      */
-    protected function getWallet(object $wallet): WalletModel
+    protected function getWallet(?object $wallet): WalletModel
     {
-        if ($wallet instanceof WalletModel) {
+        if ($this->isWallet($wallet)) {
             return $wallet;
         }
 
         try {
-            return $wallet->wallet;
+            if($this->isWallet($wallet->wallet)) {
+                return $wallet->wallet;
+            }
+            throw new Exception();
         } catch (Throwable) {
             throw new InvalidWalletModelProvided();
         }
     }
 
-    protected function isWallet(Wallet $wallet): bool
+    protected function isWallet(?object $wallet): bool
     {
-        return $wallet instanceof WalletModel;
+        return !is_null($wallet) && $wallet instanceof WalletModel;
     }
 }
