@@ -23,9 +23,10 @@ trait ParsesWallet
         }
 
         try {
-            if($this->isWallet($wallet->wallet)) {
+            if ($this->isWallet($wallet->wallet)) {
                 return $wallet->wallet;
             }
+
             throw new Exception();
         } catch (Throwable) {
             throw new InvalidWalletModelProvided();
@@ -34,6 +35,6 @@ trait ParsesWallet
 
     protected function isWallet(?object $wallet): bool
     {
-        return !is_null($wallet) && $wallet instanceof WalletModel;
+        return ! is_null($wallet) && $wallet instanceof WalletModel;
     }
 }

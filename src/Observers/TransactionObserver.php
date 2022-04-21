@@ -138,6 +138,6 @@ class TransactionObserver
 
     protected static function isWallet(?object $wallet): bool
     {
-        return !is_null($wallet) && $wallet instanceof WalletModel;
+        return ! is_null($wallet) && $wallet instanceof WalletModel;
     }
 }
