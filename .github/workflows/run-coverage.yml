@@ -59,7 +59,7 @@ jobs:
             echo "BADGE_COLOR=#30C251" >> $GITHUB_ENV
           fi
       - name: Create coverage badge
-        uses: schneegans/dynamic-badges-action@v1.3.0
+        uses: schneegans/dynamic-badges-action@v1.4.0
         with:
           auth: ${{ secrets.GIST_TOKEN }}
           gistID: 45584b0dc38ce224d546245721105bdf
